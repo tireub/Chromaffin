@@ -105,6 +105,7 @@ class Position(Base):
     id = Column(Integer, primary_key=True)
     x = Column(DECIMAL(6,4))
     y = Column(DECIMAL(6,4))
+    z = Column(DECIMAL(6,4))
     t = Column(Integer)
     vesicle_id = Column(Integer, ForeignKey("vesicle.id"))
     vesicle = relationship("Vesicle", back_populates="positions")
@@ -112,10 +113,11 @@ class Position(Base):
     membrane_point = relationship("MembranePoint")
     distance = Column(DECIMAL(6,4))
 
-    def __init__(self, vesicle, x, y, t):
+    def __init__(self, vesicle, x, y, z, t):
         self.vesicle = vesicle
         self.x = x
         self.y = y
+        self.z = z
         self.t = t
 
 

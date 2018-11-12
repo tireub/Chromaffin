@@ -3,13 +3,13 @@ from xlrd import open_workbook
 #from Session import session
 from Models import Cell, Vesicle, Position, StimulationType
 
-wb = open_workbook(r'F:\UQ\Data\Confocal experiments\20091008 Chroma '
-                   r'Nicotine\Data experiment 1\experiment 1 stimu 62.xls')
+
 
 
 # Function to import data from xls file
 # Entry parameters : file location, date, stimulation time, stimulation type
 def cell_import(session, file, date, stimulation_time, stimulation_type):
+    wb = open_workbook(file)
     stimu = session.query(StimulationType)\
         .filter(StimulationType.chemical == stimulation_type)
 
@@ -40,8 +40,9 @@ def cell_import(session, file, date, stimulation_time, stimulation_type):
             # Extract x,y,z value
             x = positionsSheet.cell(k, 0).value
             y = positionsSheet.cell(k, 1).value
+            z = positionsSheet.cell(k, 2).value
             t = positionsSheet.cell(k, 6).value
-            pos = Position(ves, x, y, t)
+            pos = Position(ves, x, y, z, t)
 
             k += 1
 
