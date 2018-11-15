@@ -1,0 +1,12 @@
+This is the 13th project of the OpenClassrooms Python Application Developper
+course.
+
+This project aims to provide biologists studying vesicle movement within
+chrmoaffin cells analysis tools.
+
+For more information regarding the reach of this project please refer to
+https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0087242
+
+
+So far, the main program is called via the Session.py program (main).
+It calls the different functions contained in the various other py files.

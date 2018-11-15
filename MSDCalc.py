@@ -28,10 +28,10 @@ def MSDCalc(session, vesicle):
         # if after stimulation
         if t[-1] > stimulationtime:
             # Get number of points before stimulation
-            sizebefore = stimulationtime - t[0] - 1
+            sizebefore = stimulationtime - t[0]
 
             num = min(sizebefore, 20)
-            print(num)
+
             msd = []
             # Calculate MSD for deltat up to nbrofpts or 20
             for deltaT in range(num):
@@ -48,14 +48,16 @@ def MSDCalc(session, vesicle):
 
             # Get number of points after stimulation
             sizeafter = t[-1] - stimulationtime
+
             num = min(sizeafter, 20)
             msd = []
             # Calculate MSD for deltat up to nbrofpts or 20
             for deltaT in range(num):
 
                 sqdisp = []
-                for elem in range(stimulationtime,
-                                  stimulationtime+sizeafter-deltaT):
+                for elem in range(sizebefore+1,
+                                  sizebefore+1+sizeafter-deltaT):
+
                     sqdisp.append((x[elem+deltaT] - x[elem])**2 +
                                   (y[elem+deltaT] - y[elem])**2 +
                                   (z[elem+deltaT] - z[elem])**2)
@@ -92,3 +94,10 @@ def MSDCalc(session, vesicle):
             # Fill values
             meansquare = MSD(vesicle, deltaT, np.mean(sqdisp), 2)
             session.add(meansquare)
+
+
+def CellMSDs(session, cell):
+    vesicles = session.query(Vesicle).filter(Vesicle.cell == cell).all()
+
+    for vesicle in vesicles:
+        MSDCalc(session, vesicle)

@@ -3,7 +3,8 @@ from Models import Cell, StimulationType, MembranePoint, Vesicle, \
 from datetime import date
 from Imports import cell_import, open_workbook
 from Base import Session, engine, Base
-from MSDCalc import MSDCalc
+from MSDCalc import MSDCalc, CellMSDs
+from BehaviourSorting import Sorting, CellSorting
 
 
 Base.metadata.create_all(engine)
@@ -11,9 +12,9 @@ Base.metadata.create_all(engine)
 session = Session()
 
 
-vesicle = session.query(Vesicle).filter(Vesicle.id == 1)[0]
+cell = session.query(Cell).filter(Cell.id == 1)[0]
 
-MSDCalc(session, vesicle)
+CellSorting(session, cell)
 
 session.commit()
 

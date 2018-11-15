@@ -79,8 +79,9 @@ class VesicleBehaviour(Base):
     behaviour_type_id = Column(Integer, ForeignKey("behaviour_type.id"))
     behaviour_type = relationship("BehaviourType")
 
-    def __init__(self, vesicle):
+    def __init__(self, vesicle, time):
         self.vesicle = vesicle
+        self.time_status = time
 
 
 class MSD(Base):
