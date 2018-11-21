@@ -1,9 +1,7 @@
 from xlrd import open_workbook
 
-#from Session import session
-from Models import Cell, Vesicle, Position, StimulationType
-
-
+# from Session import session
+from Models import Cell, Vesicle, Position, StimulationType, MembranePoint
 
 
 # Function to import data from xls file
@@ -21,7 +19,7 @@ def cell_import(session, file, date, stimulation_time, stimulation_type):
     session.add(newcell)
 
 # Get number of vesicles
-    vesnbr = int(wb.sheet_by_name('Overall').cell(1,1).value)
+    vesnbr = int(wb.sheet_by_name('Overall').cell(1, 1).value)
 
     positionsSheet = wb.sheet_by_name('Position')
 
@@ -29,7 +27,8 @@ def cell_import(session, file, date, stimulation_time, stimulation_type):
 # For each vesicle
     for i in range(vesnbr):
         # Get track number of points
-        nbrOfPts = int(wb.sheet_by_name('Track Number of Points').cell(i+1, 0).value)
+        nbrOfPts = int(wb.sheet_by_name('Track Number of Points').
+                       cell(i+1, 0).value)
 
         # Fill vesicle values
         ves = Vesicle(nbrOfPts, newcell)
@@ -46,6 +45,24 @@ def cell_import(session, file, date, stimulation_time, stimulation_type):
 
             k += 1
 
-
             # Fill position values
             session.add(pos)
+
+
+# Function import membrane points from a txt file
+def edges_import(session, file, cell):
+    # Open requested text file
+    with open(file, "r") as edgesFile:
+        # Read through the lines
+        for line in edgesFile:
+            # Remove potential last line error
+            if line.split():
+                # Extract x and y values
+                x = (line.split()[0])
+                y = (line.split()[1])
+
+                # Initiate new membrane point
+                point = MembranePoint(cell.id, x, y)
+
+                # Fille values in the database
+                session.add(point)

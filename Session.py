@@ -1,21 +1,21 @@
 from Models import Cell, StimulationType, MembranePoint, Vesicle, \
     BehaviourType, VesicleBehaviour, MSD, Position
 from datetime import date
-from Imports import cell_import, open_workbook
+from Imports.Imports import cell_import, edges_import
 from Base import Session, engine, Base
-from MSDCalc import MSDCalc, CellMSDs
-from BehaviourSorting import Sorting, CellSorting
+from Calculation.MSDCalc import MSDCalc, CellMSDs
+from Calculation.BehaviourSorting import Sorting, CellSorting
+from Calculation.DistanceFromMembrane import distanceFromMembrane, massDistanceFromMembrane
 
 
 Base.metadata.create_all(engine)
 
 session = Session()
 
+# cell = session.query(Cell).filter(Cell.id == 1).first()
 
-cell = session.query(Cell).filter(Cell.id == 1)[0]
+# massDistanceFromMembrane(session, cell)
 
-CellSorting(session, cell)
-
-session.commit()
+# session.commit()
 
 session.close()

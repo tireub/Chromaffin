@@ -14,6 +14,7 @@ class Cell(Base):
     stimulation_type_id = Column(Integer, ForeignKey("stimulation_type.id"))
     stimulation_type = relationship("StimulationType")
     vesicles = relationship("Vesicle", back_populates="cell")
+    membranes = relationship("MembranePoint", back_populates="cell")
 
     def __init__(self, name, date):
         self.name = name
@@ -35,12 +36,12 @@ class MembranePoint(Base):
 
     id = Column(Integer, primary_key=True)
     cell_id = Column(Integer, ForeignKey("cell.id"))
-    cell = relationship("Cell")
+    cell = relationship("Cell", back_populates="membranes")
     x = Column(DECIMAL(6,4))
     y = Column(DECIMAL(6,4))
 
-    def __init__(self, cell, x, y):
-        self.cell = cell
+    def __init__(self, cell_id, x, y):
+        self.cell_id = cell_id
         self.x = x
         self.y = y
 
