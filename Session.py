@@ -4,7 +4,7 @@ from datetime import date
 from Imports.Imports import cell_import, edges_import
 from Base import Session, engine, Base
 from Calculation.MSDCalc import MSDCalc, CellMSDs
-from Calculation.BehaviourSorting import Sorting, CellSorting
+from Calculation.BehaviourSorting import sorting, cellSorting
 from Calculation.DistanceFromMembrane import distanceFromMembrane, massDistanceFromMembrane
 
 

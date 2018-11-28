@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 # For the desired vesicle
-def Sorting(session, vesicle):
+def sorting(session, vesicle):
 
     # For MSD before stimulation
     # Import vesicle MSD values before stimulation
@@ -71,9 +71,9 @@ def Sorting(session, vesicle):
             session.add(behav)  # Save info
 
 
-def CellSorting(session, cell):
+def cellSorting(session, cell):
     vesicles = session.query(Vesicle).filter(Vesicle.cell == cell).all()
 
     for vesicle in vesicles:
         print(vesicle.id)
-        Sorting(session, vesicle)
+        sorting(session, vesicle)
