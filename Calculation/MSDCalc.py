@@ -101,3 +101,5 @@ def CellMSDs(session, cell):
 
     for vesicle in vesicles:
         MSDCalc(session, vesicle)
+
+    session.commit()

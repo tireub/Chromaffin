@@ -9,7 +9,7 @@ from Base import Session, engine, Base
 import tkinter as tk
 from tkinter import ttk
 
-from GUI.Pages import CellPage, StartPage, f, animate
+from GUI.Pages import CellPage, StartPage, f, cell_display_update
 
 
 class Chromaffinapp(tk.Tk):

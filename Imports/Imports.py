@@ -6,12 +6,12 @@ from Models import Cell, Vesicle, Position, StimulationType, MembranePoint
 
 # Function to import data from xls file
 # Entry parameters : file location, date, stimulation time, stimulation type
-def cell_import(session, file, date, stimulation_time, stimulation_type):
+def cell_import(session, file, name, date, stimulation_time, stimulation_type):
     wb = open_workbook(file)
     stimu = session.query(StimulationType)\
         .filter(StimulationType.chemical == stimulation_type)
 
-    newcell = Cell(file, date)
+    newcell = Cell(name, date)
     newcell.stimulation_time = stimulation_time
     newcell.stimulation_type = stimu[0]
 
@@ -47,6 +47,8 @@ def cell_import(session, file, date, stimulation_time, stimulation_type):
 
             # Fill position values
             session.add(pos)
+
+    session.commit()
 
 
 # Function import membrane points from a txt file
