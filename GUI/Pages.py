@@ -11,6 +11,8 @@ from Models import Cell, Position, MembranePoint, Vesicle
 from .NewCell import new_cell_dialog
 from .PopupMsg import popupmsg
 from .CalculateMSD import MSD_dialog
+from .ImportMembrane import membrane_dialog
+from .DistanceCacl import distance_dialog
 
 
 # Definition of generic fonts to use in the pages
@@ -163,17 +165,18 @@ class CellPage(tk.Frame):
         calculate_msd = ttk.Button(cell_imports,
                                    text="Calculate the current cell MSDs",
                                    command=lambda: MSD_dialog(session))
-        import_membrane = ttk.Button(cell_imports,
-                                     text="Import membrane data "
-                                          "for the current cell")
-        delete_cell = ttk.Button(cell_imports,
-                                 text="Delete cell and all related elements")
+        import_membrane_btn = ttk.Button(cell_imports,
+                                         text="Import membrane data for a cell",
+                                         command=lambda: membrane_dialog(session))
+        membrane_dist_btn = ttk.Button(cell_imports,
+                                       text="Calculate distance from membrane",
+                                       command=lambda: distance_dialog(session))
 
         label3.grid()
         new_cell.grid(row=2)
         calculate_msd.grid(row=3)
-        import_membrane.grid(row=4)
-        delete_cell.grid(row=5)
+        import_membrane_btn.grid(row=4)
+        membrane_dist_btn.grid(row=5)
 
         cell_imports.grid(row=6, column=2)
 

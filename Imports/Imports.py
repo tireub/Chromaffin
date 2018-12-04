@@ -68,3 +68,4 @@ def edges_import(session, file, cell):
 
                 # Fille values in the database
                 session.add(point)
+                session.commit()
