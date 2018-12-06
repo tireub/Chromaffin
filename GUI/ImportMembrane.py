@@ -7,6 +7,7 @@ from Imports.Imports import edges_import
 from .PopupMsg import popupmsg
 from Calculation.DistanceFromMembrane import massDistanceFromMembrane
 
+
 def membrane_dialog(session):
     dialog = tk.Toplevel()
     dialog.minsize(400, 300)
@@ -55,7 +56,6 @@ def membrane_dialog(session):
     validate.grid(row=3, columnspan=2)
 
 
-
 def import_membrane(dialog, session, name, file, calc):
     cell = session.query(Cell).filter(Cell.name == name).first()
     firstpoint = session.query(MembranePoint).\
@@ -71,4 +71,3 @@ def import_membrane(dialog, session, name, file, calc):
     # If there is some membrane points, raise error message
     else:
         popupmsg("This cell already has membrane data.")
-

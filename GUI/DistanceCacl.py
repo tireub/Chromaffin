@@ -5,6 +5,7 @@ from Models import Cell, Vesicle, Position
 from .PopupMsg import popupmsg
 from Calculation.DistanceFromMembrane import massDistanceFromMembrane
 
+
 def distance_dialog(session):
     dialog = tk.Toplevel()
     dialog.minsize(400, 300)
@@ -27,8 +28,8 @@ def distance_dialog(session):
     validate = ttk.Button(dialog,
                           text="Import",
                           command=lambda: calculate_distance(dialog,
-                                                            session,
-                                                            cellchoice.get()))
+                                                             session,
+                                                             cellchoice.get()))
     validate.grid(row=1, columnspan=2)
 
 
@@ -36,7 +37,8 @@ def calculate_distance(dialog, session, name):
     cell = session.query(Cell).filter(Cell.name == name).first()
 
     first_ves = session.query(Vesicle).filter(Vesicle.cell == cell).first()
-    firstdist = session.query(Position).filter(Position.vesicle == first_ves).first().distance
+    firstdist = session.query(Position)\
+        .filter(Position.vesicle == first_ves).first().distance
 
     if not firstdist:
         massDistanceFromMembrane(session, cell)

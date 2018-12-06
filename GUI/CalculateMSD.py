@@ -47,4 +47,3 @@ def calculateMSD(dialog, session, name):
 
     else:
         popupmsg("This cell's MSDs have already been calculated.")
-
