@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tkinter as tk
 from tkinter import ttk
-from Models import Cell, Position, MembranePoint, Vesicle, MSD
+from Models import Cell, Position, MembranePoint,\
+    Vesicle, MSD, VesicleBehaviour
 from .NewCell import new_cell_dialog
 from .PopupMsg import popupmsg
 from .CalculateMSD import MSD_dialog
 from .ImportMembrane import membrane_dialog
 from .DistanceCacl import distance_dialog
-#from .VesiclePage import VesiclePage
 mpl.use("TkAgg")
 
 # Definition of generic fonts to use in the pages
@@ -272,7 +272,7 @@ class VesiclePage(tk.Frame):
         button2 = ttk.Button(self,
                              text="Vesicle",
                              style='my.TButton')
-        button2.grid(row=0, column=2, columnspan=2,sticky="NSEW")
+        button2.grid(row=0, column=2, columnspan=2, sticky="NSEW")
         button3 = ttk.Button(self, text="Statistics",
                              command=lambda: popupmsg(
                                  "Not supported yet!"),
@@ -299,33 +299,45 @@ class VesiclePage(tk.Frame):
         vesLabel = ttk.Label(ves_selection, text="Select desired vesicle")
         prevButton = ttk.Button(ves_selection,
                                 text='Previous',
-                                command=lambda: popupmsg("Not supported yet!"),
+                                command=lambda: self.ves_update(
+                                    session, "Previous"),
                                 style='my.TButton')
         nextButton = ttk.Button(ves_selection,
                                 text='Next',
-                                command=lambda: popupmsg("Not supported yet!"),
+                                command=lambda: self.ves_update(
+                                    session, "Next"),
                                 style='my.TButton')
-        vesnbr = ttk.Entry(ves_selection, )
+        choosenbr = ttk.Label(ves_selection, text="Choose a vesicle number")
+        self.veschoice = tk.StringVar()
+        vesnbr = ttk.Entry(ves_selection,  textvariable=self.veschoice)
+        choosebtn = ttk.Button(ves_selection,
+                               text="Go",
+                               command=lambda: self.ves_update(
+                                   session, vesnbr.get()),
+                               style='my.TButton')
         vesLabel.grid(row=1, columnspan=2)
         prevButton.grid(row=2)
-        vesnbr.grid(row=2, column=1)
-        nextButton.grid(row=2, column=2)
+        nextButton.grid(row=2, column=1)
+        choosenbr.grid(row=3)
+        vesnbr.grid(row=3, column=1)
+        choosebtn.grid(row=3, column=2)
 
         ves_selection.grid(row=1, column=0, columnspan=3)
 
         # Vesicle trajectory figure initialisation
         self.vesfig = Figure(facecolor="black")
-        self.trajplot= self.vesfig.add_subplot(111, facecolor="black")
+        self.trajplot = self.vesfig.add_subplot(111, facecolor="black")
         self.trajcanvas = FigureCanvasTkAgg(self.vesfig, self)
         self.trajcanvas.draw()
         self.trajcanvas.get_tk_widget().grid(row=2, column=0,
-                                    columnspan=2, sticky="NSEW")
+                                             columnspan=2, sticky="NSEW")
         # MSD fit before stimu figure initialisation
         self.msdbef = Figure()
         self.msdbefplot = self.msdbef.add_subplot(111)
         self.msdbefcanv = FigureCanvasTkAgg(self.msdbef, self)
         self.msdbefcanv.draw()
-        self.msdbefcanv.get_tk_widget().grid(row=2, column=2, columnspan=2, sticky="NSEW")
+        self.msdbefcanv.get_tk_widget().grid(row=2, column=2, columnspan=2,
+                                             sticky="NSEW")
 
         # MSD fit after stimu figure initialisation
         self.msdaft = Figure()
@@ -333,9 +345,20 @@ class VesiclePage(tk.Frame):
         self.msdaftcanv = FigureCanvasTkAgg(self.msdaft, self)
         self.msdaftcanv.draw()
         self.msdaftcanv.get_tk_widget().grid(row=2, column=4, columnspan=2,
-                                     sticky="NSEW")
+                                             sticky="NSEW")
 
         # Definition of the infos menu
+        self.cell_value = tk.StringVar()
+        self.ves_value = tk.IntVar()
+        self.points_value = tk.IntVar()
+        self.bef_value = tk.StringVar()
+        self.aft_value = tk.StringVar()
+        self.cell_value.set("NA")
+        self.ves_value.set(0)
+        self.points_value.set(0)
+        self.bef_value.set("NA")
+        self.aft_value.set("NA")
+
         infos = tk.Frame(self, borderwidth=5, relief=tk.SUNKEN)
         infoLabel = ttk.Label(infos, text='Vesicle informations')
         ilabel1 = ttk.Label(infos, text='Cell name :')
@@ -343,11 +366,11 @@ class VesiclePage(tk.Frame):
         ilabel3 = ttk.Label(infos, text='Number of points :')
         ilabel4 = ttk.Label(infos, text='Behaviour before stimulation :')
         ilabel5 = ttk.Label(infos, text='Behaviour before stimulation :')
-        info1 = ttk.Label(infos, text='NA')
-        info2 = ttk.Label(infos, text='NA')
-        info3 = ttk.Label(infos, text='NA')
-        info4 = ttk.Label(infos, text='NA')
-        info5 = ttk.Label(infos, text='NA')
+        info1 = ttk.Label(infos, textvariable=self.cell_value)
+        info2 = ttk.Label(infos, textvariable=self.ves_value)
+        info3 = ttk.Label(infos, textvariable=self.points_value)
+        info4 = ttk.Label(infos, textvariable=self.bef_value)
+        info5 = ttk.Label(infos, textvariable=self.aft_value)
         infoLabel.grid(row=0, columnspan=2)
         ilabel1.grid(row=1, column=0)
         info1.grid(row=1, column=1)
@@ -363,17 +386,20 @@ class VesiclePage(tk.Frame):
         # Add infos subframe to the main window frame
         infos.grid(row=1, column=3, columnspan=3, sticky="NSEW")
 
-
+    # Actions to apply when a new cell is selected from the combobox
     def cell_change(self, newcell, session):
         global current_cell
         global current_vesicle
+        global cell_ves_nbr
 
         current_cell = session.query(Cell). \
             filter(Cell.name == newcell).first()
-        current_vesicle = 1
+        current_vesicle = 0
+        cell_ves_nbr = len(
+            session.query(Vesicle).filter(Vesicle.cell == current_cell).all())
         self.ves_display_update(session)
 
-
+    # Any change of the vesicle to display
     def ves_update(self, session, command):
         global current_vesicle
 
@@ -383,29 +409,34 @@ class VesiclePage(tk.Frame):
 
         else:
             if command == "Next":
-                if current_vesicle < cell_ves_nbr:
-                    current_vesicle += 1
+                if current_vesicle < cell_ves_nbr - 1:
+                    current_vesicle = current_vesicle + 1
 
             elif command == "Previous":
-                if current_vesicle > 1:
-                    current_vesicle -= 1
-
-            elif isinstance(command, int):
-                if command < 1:
-                    current_vesicle = 1
-                elif command >= cell_ves_nbr:
-                    current_vesicle = cell_ves_nbr
-                else:
-                    current_vesicle = command
+                if current_vesicle > 0:
+                    current_vesicle = current_vesicle - 1
 
             else:
-                popupmsg("Please enter an integer value.")
+                # Check if the entry is actually an integer
+                try:
+                    val = int(command)
+                    if val < 1:
+                        current_vesicle = 0
+                    elif val >= cell_ves_nbr + 1:
+                        current_vesicle = cell_ves_nbr - 1
+                    else:
+                        current_vesicle = val - 1
+
+                except:
+                    popupmsg("Please enter an integer value.")
 
         self.ves_display_update(session)
-
+        self.veschoice.set(current_vesicle + 1)
 
     def ves_display_update(self, session):
-        ves = session.query(Vesicle).filter(Vesicle.cell == current_cell).all()[0]
+        ves = \
+        session.query(Vesicle).filter(Vesicle.cell == current_cell).all()[
+            current_vesicle]
 
         # Update the first plot, vesicle traj
         self.trajplot.clear()
@@ -426,16 +457,17 @@ class VesiclePage(tk.Frame):
         self.msdbefplot.clear()
         dt = []
         y = []
-        values = session.query(MSD).filter(MSD.vesicle == ves, MSD.before_after_stimu == 1).all()
+        values = session.query(MSD).filter(MSD.vesicle == ves,
+                                           MSD.before_after_stimu == 1).all()
         for value in values:
             dt.append(float(value.deltat))
             y.append(float(value.value))
         self.msdbefplot.scatter(dt, y)
-        fit = np.polyfit(dt, y, 2)
-        fits = [fit[0]*i**2 + fit[1]*i for i in dt]
-        self.msdbefplot.plot(dt, fits)
+        if len(dt) > 3:
+            fit = np.polyfit(dt, y, 2)
+            fits = [fit[0]*i**2 + fit[1]*i for i in dt]
+            self.msdbefplot.plot(dt, fits)
         self.msdbefcanv.draw()
-
 
         # Update the MSDaft figure
         self.msdaftplot.clear()
@@ -448,12 +480,31 @@ class VesiclePage(tk.Frame):
             y.append(float(value.value))
         self.msdaftplot.scatter(dt, y)
 
-        if len(dt) > 0:
+        if len(dt) > 3:
             fit = np.polyfit(dt, y, 2)
             fits = [fit[0] * i ** 2 + fit[1] * i for i in dt]
             self.msdaftplot.plot(dt, fits)
 
         self.msdaftcanv.draw()
 
+        # Update the right panel values
+        self.cell_value.set(current_cell.name)
+        self.ves_value.set(current_vesicle+1)
+        self.points_value.set(ves.track_duration)
+        try:
+            behavbef = session.query(VesicleBehaviour).filter(
+                VesicleBehaviour.vesicle == ves,
+                VesicleBehaviour.time_status == 1).first().behaviour_type.type
+            self.bef_value.set(behavbef)
+        except:
+            self.bef_value.set("NA")
+        try:
+            behavaft = session.query(VesicleBehaviour).filter(
+                VesicleBehaviour.vesicle == ves,
+                VesicleBehaviour.time_status == 2).first().behaviour_type.type
+            self.aft_value.set(behavaft)
+        except:
+            self.aft_value.set("NA")
 
-
+        # Update ves navigation value
+        self.veschoice.set(current_vesicle + 1)
