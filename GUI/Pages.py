@@ -7,15 +7,19 @@ import numpy as np
 import tkinter as tk
 from tkinter import ttk
 from Models import Cell, Position, MembranePoint,\
-    Vesicle, MSD, VesicleBehaviour
+    Vesicle, MSD, VesicleBehaviour, StimulationType, BehaviourType
 from .NewCell import new_cell_dialog
 from .PopupMsg import popupmsg
 from .CalculateMSD import MSD_dialog
 from .ImportMembrane import membrane_dialog
 from .DistanceCacl import distance_dialog
+from Calculation.BehaviourChanges import behavchange
+from Calculation.Changevsoriginalbehaviour import changevsoriginal as chvsori
+from Calculation.DistaAtStimuTime import dist_at_stimu as dats
 mpl.use("TkAgg")
 
 # Definition of generic fonts to use in the pages
+SELECTED_FONT = ("Verdana 12 bold")
 LARGE_FONT = ("Verdana", 12)
 NORM_FONT = ("Verdana", 10)
 
@@ -67,10 +71,11 @@ class CellPage(tk.Frame):
         # Adding thumbnails buttons
         s = ttk.Style()
         s.configure('my.TButton', font=LARGE_FONT)
+        s.configure('Highlighted.TButton', font=SELECTED_FONT)
 
         button1 = ttk.Button(self,
                              text="Cell",
-                             style='my.TButton')
+                             style='Highlighted.TButton')
         button1.grid(sticky="NSEW")
         button2 = ttk.Button(self,
                              text="Vesicle",
@@ -79,8 +84,7 @@ class CellPage(tk.Frame):
                              style='my.TButton')
         button2.grid(row=0, column=1, sticky="NSEW")
         button3 = ttk.Button(self, text="Statistics",
-                             command=lambda: popupmsg(
-                                 "Not supported yet!"),
+                             command=lambda: controller.show_frame(StatsPage),
                              style='my.TButton')
         button3.grid(row=0, column=2, sticky="NSEW")
 
@@ -263,6 +267,7 @@ class VesiclePage(tk.Frame):
         # Adding thumbnails buttons
         s = ttk.Style()
         s.configure('my.TButton', font=LARGE_FONT)
+        s.configure('Highlighted.TButton', font=SELECTED_FONT)
 
         button1 = ttk.Button(self,
                              text="Cell",
@@ -271,11 +276,10 @@ class VesiclePage(tk.Frame):
         button1.grid(columnspan=2, sticky="NSEW")
         button2 = ttk.Button(self,
                              text="Vesicle",
-                             style='my.TButton')
+                             style='Highlighted.TButton')
         button2.grid(row=0, column=2, columnspan=2, sticky="NSEW")
         button3 = ttk.Button(self, text="Statistics",
-                             command=lambda: popupmsg(
-                                 "Not supported yet!"),
+                             command=lambda: controller.show_frame(StatsPage),
                              style='my.TButton')
         button3.grid(row=0, column=4, columnspan=2, sticky="NSEW")
 
@@ -508,3 +512,220 @@ class VesiclePage(tk.Frame):
 
         # Update ves navigation value
         self.veschoice.set(current_vesicle + 1)
+
+
+class StatsPage(tk.Frame):
+
+    def __init__(self, parent, controller, session):
+        tk.Frame.__init__(self, parent)
+        # Grid configuration
+        self.columnconfigure(0, minsize=200, weight=1)
+        self.columnconfigure(1, minsize=200, weight=1)
+        self.columnconfigure(2, minsize=200, weight=1)
+        self.columnconfigure(3, minsize=200, weight=1)
+        self.columnconfigure(4, minsize=200, weight=1)
+        self.columnconfigure(5, minsize=200, weight=1)
+
+        self.rowconfigure(0, minsize=50, weight=1)
+        self.rowconfigure(1, minsize=150, weight=3)
+        self.rowconfigure(2, minsize=250, weight=3)
+        self.rowconfigure(3, minsize=50, weight=2)
+        self.rowconfigure(4, minsize=50, weight=2)
+        self.rowconfigure(5, minsize=50, weight=2)
+
+        # Adding thumbnails buttons
+        s = ttk.Style()
+        s.configure('my.TButton', font=LARGE_FONT)
+        s.configure('Highlighted.TButton', font=SELECTED_FONT)
+
+        button1 = ttk.Button(self,
+                             text="Cell",
+                             style='my.TButton',
+                             command=lambda: controller.show_frame(CellPage))
+        button1.grid(columnspan=2, sticky="NSEW")
+        button2 = ttk.Button(self,
+                             text="Vesicle",
+                             style='my.TButton',
+                             command=lambda: controller.show_frame(
+                                 VesiclePage))
+        button2.grid(row=0, column=2, columnspan=2, sticky="NSEW")
+        button3 = ttk.Button(self, text="Statistics",
+                             style='Highlighted.TButton')
+        button3.grid(row=0, column=4, columnspan=2, sticky="NSEW")
+
+        self.stat_type = tk.StringVar()
+        self.stimu_type = tk.StringVar()
+        self.all_cells = tk.StringVar()
+
+        # Subframe summarising what is displayed
+        summary = tk.Frame(self, borderwidth=5, relief=tk.SUNKEN)
+        slabel1 = ttk.Label(summary, text='Statistics displayed :')
+        info1 = ttk.Label(summary, textvariable=self.stat_type)
+        slabel2 = ttk.Label(summary, text='Type of stimulation :')
+        info2 = ttk.Label(summary, textvariable=self.stimu_type)
+        slabel3 = ttk.Label(summary, text='All cells included :')
+        info3 = ttk.Label(summary, textvariable=self.all_cells)
+        exportbutton = ttk.Button(summary, text='Export graph')
+        slabel1.grid()
+        slabel2.grid(row=1)
+        slabel3.grid(row=2)
+        info1.grid(column=1)
+        info2.grid(row=1, column=1)
+        info3.grid(row=2, column=1)
+        exportbutton.grid(row=3, columnspan=2)
+        summary.grid(row=1, columnspan=2, sticky="NSEW")
+
+        # Subframe to select options for the filters
+        stats_options = tk.Frame(self)
+        type_label = ttk.Label(stats_options,
+                               text="Select the stimulation type :")
+
+        stimutypes = session.query(StimulationType).all()
+        stimu_list = []
+        for c in stimutypes:
+            stimu_list.append(c.chemical)
+
+        cmb = ttk.Combobox(stats_options,
+                           width="30",
+                           values=stimu_list,
+                           state="readonly")
+        cmb.bind("<<ComboboxSelected>>")
+        type_label.grid(row=0)
+        cmb.grid(row=0, column=1)
+        selectcells = ttk.Button(stats_options,
+                                 text="Chose cells to remove",
+                                 command=lambda: popupmsg(
+                                     "Not supported yet!"))
+        remove = ttk.Checkbutton(stats_options, text="Remove selected cells")
+        selectcells.grid(row=1)
+        remove.grid(row=1, column=1)
+        behav = session.query(BehaviourType).all()
+        behav_list = []
+        for b in behav:
+            behav_list.append(b.type)
+        original = ttk.Combobox(stats_options,
+                                width="30",
+                                values=behav_list,
+                                state="readonly")
+        original.bind("<<ComboboxSelected>>")
+        original.grid(row=2)
+        stats_options.grid(row=2, columnspan=2)
+
+        # Adding the display options buttons
+        popButton = ttk.Button(self,
+                               text="Population changes",
+                               style="my.TButton",
+                               command=lambda: self.popchange_display(
+                                   session, cmb.get()))
+        switchButton = ttk.Button(self,
+                                  text="Changes vs initial behaviour",
+                                  style="my.TButton",
+                                  command=lambda: self.ch_vs_ori_display(
+                                      session,
+                                      cmb.get(),
+                                      original.get()))
+        distButton = ttk.Button(self,
+                                text="Changes vs distance to membrane",
+                                style="my.TButton",
+                                command=lambda: self.nine_quadrants_display(
+                                    session, cmb.get()))
+        popButton.grid(row=3, columnspan=2, sticky="NSEW")
+        switchButton.grid(row=4, columnspan=2, sticky="NSEW")
+        distButton.grid(row=5, columnspan=2, sticky="NSEW")
+
+        # Stats plots initialisation
+        self.statsfig = Figure()
+        # self.popsplot = self.statsfig.add_subplot(111)
+        self.statcanvas = FigureCanvasTkAgg(self.statsfig, self)
+        self.statcanvas.draw()
+        self.statcanvas.get_tk_widget().grid(row=1, rowspan=5, column=2,
+                                             columnspan=4, sticky="NSEW")
+
+    def popchange_display(self, session, stimu):
+        self.statsfig.clear()
+        self.popsplot = self.statsfig.add_subplot(111)
+        (fb, db, cb, fa, da, ca) = behavchange(session, stimu)
+
+        # data
+        n_groups = 3
+        before = (fb, db, cb)
+        after = (fa, da, ca)
+
+        index = np.arange(n_groups)
+        bar_width = 0.35
+        opacity = 0.8
+
+        self.popsplot.bar(index, before, bar_width, alpha=opacity,
+                          color='b', label='Before')
+        self.popsplot.bar(index + bar_width, after, bar_width,
+                          alpha=opacity, color='g', label='After')
+        self.popsplot.axes.set_xticklabels(('', 'Free', '',
+                                            'Directed', '', 'Caged'))
+
+        self.statcanvas.draw()
+
+    def ch_vs_ori_display(self, session, stimu, original):
+        self.statsfig.clear()
+        self.popsplot = self.statsfig.add_subplot(111)
+        (newfree, newdir, newcaged, calc) = chvsori(session, stimu, original)
+        if calc:
+            sum = len(newfree) + len(newdir) + len(newcaged)
+            nfper = len(newfree) / sum
+            ndper = len(newdir) / sum
+            ncper = len(newcaged) / sum
+        else:
+            nfper = 0
+            ndper = 0
+            ncper = 0
+
+        labels = ("Free", "Directed", "Caged")
+        y_pos = np.arange(len(labels))
+        values = [nfper, ndper, ncper]
+        self.popsplot.bar(y_pos, values, align='center')
+        labels = ("", "", "Free", "", "Directed", "", "Caged")
+        self.popsplot.axes.set_xticklabels(labels, fontdict=None, minor=False)
+
+        self.statcanvas.draw()
+
+    def nine_quadrants_display(self, session, stimu):
+        self.statsfig.clear()
+        bins = np.linspace(0, 5, 11)
+
+        # Originally free
+        (newfree, newdir, newcaged, calc) = chvsori(session, stimu, "Free")
+
+        self.ffsplot = self.statsfig.add_subplot(331)
+        distances = dats(session, newfree)
+        self.ffsplot.hist(distances, bins)
+        self.fdsplot = self.statsfig.add_subplot(332)
+        distances = dats(session, newdir)
+        self.fdsplot.hist(distances, bins)
+        self.fcsplot = self.statsfig.add_subplot(333)
+        distances = dats(session, newcaged)
+        self.fcsplot.hist(distances, bins)
+
+        # Originally directed
+        (newfree, newdir, newcaged, calc) = chvsori(session, stimu, "Directed")
+        self.dfsplot = self.statsfig.add_subplot(334)
+        distances = dats(session, newfree)
+        self.dfsplot.hist(distances, bins)
+        self.ddsplot = self.statsfig.add_subplot(335)
+        distances = dats(session, newdir)
+        self.ddsplot.hist(distances, bins)
+        self.dcsplot = self.statsfig.add_subplot(336)
+        distances = dats(session, newcaged)
+        self.dcsplot.hist(distances, bins)
+
+        # Originally caged
+        (newfree, newdir, newcaged, calc) = chvsori(session, stimu, "Caged")
+        self.cfsplot = self.statsfig.add_subplot(337)
+        distances = dats(session, newfree)
+        self.cfsplot.hist(distances, bins)
+        self.cdsplot = self.statsfig.add_subplot(338)
+        distances = dats(session, newdir)
+        self.cdsplot.hist(distances, bins)
+        self.ccsplot = self.statsfig.add_subplot(339)
+        distances = dats(session, newcaged)
+        self.ccsplot.hist(distances, bins)
+
+        self.statcanvas.draw()

@@ -9,7 +9,7 @@ from Base import Session, engine, Base
 import tkinter as tk
 from tkinter import ttk
 
-from GUI.Pages import CellPage, StartPage, f, VesiclePage
+from GUI.Pages import CellPage, StartPage, f, VesiclePage, StatsPage
 # from GUI.VesiclePage import VesiclePage
 
 
@@ -37,7 +37,7 @@ class Chromaffinapp(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, CellPage, VesiclePage):
+        for F in (StartPage, CellPage, VesiclePage, StatsPage):
             frame = F(container, self, session)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
