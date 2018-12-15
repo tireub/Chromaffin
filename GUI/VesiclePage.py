@@ -164,9 +164,17 @@ t = []
     for i in len(xpos) - 1:
         plot(xpos[i:i+1], y[i:i+1], c=norm(t[i])
         
-        
-   
-   
-   
             
 """
+
+# Filter option:
+
+# Filter is a self.filter boolean
+"""
+a.clear()
+            vesicles = session.query(Vesicle). \
+                filter(Vesicle.cell == current_cell).all()
+            last_ves = vesicles[-1]
+            last_pos = session.query(Position).\
+                filter(Position.vesicle == last_ves).all()"""
+

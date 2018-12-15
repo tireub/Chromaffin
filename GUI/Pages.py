@@ -16,6 +16,7 @@ from .DistanceCacl import distance_dialog
 from Calculation.BehaviourChanges import behavchange
 from Calculation.Changevsoriginalbehaviour import changevsoriginal as chvsori
 from Calculation.DistaAtStimuTime import dist_at_stimu as dats
+from Calculation.FilterByBehav import filering
 mpl.use("TkAgg")
 
 # Definition of generic fonts to use in the pages
@@ -26,6 +27,7 @@ NORM_FONT = ("Verdana", 10)
 # Gestion of the figure
 f = Figure(facecolor="black")
 a = f.add_subplot(111, facecolor="black")
+f.subplots_adjust(left=0.05,right=0.85,bottom=0.1,top=0.9)
 
 # Set initial variables
 current_cell = False
@@ -128,48 +130,75 @@ class CellPage(tk.Frame):
 
         self.hide_membrane = False
 
+        options = tk.Frame(self)
         var = tk.IntVar()
-        check = ttk.Checkbutton(self,
+        check = ttk.Checkbutton(options,
                                 text="Hide membrane.",
                                 variable=var,
                                 command=lambda: self.switch_membrane_vision(
                                     var.get(), session, canvas))
-        check.grid(row=4, column=2)
+        check.grid(row=0)
+        options.grid(row=4, column=2)
 
         # Definition of the filters menu
         filters = tk.Frame(self, borderwidth=5, relief=tk.SUNKEN)
         # Set all the elements
+        fb = tk.BooleanVar()
+        db = tk.BooleanVar()
+        cb = tk.BooleanVar()
+        fa = tk.BooleanVar()
+        da = tk.BooleanVar()
+        ca = tk.BooleanVar()
+        fb.set(1)
+        db.set(1)
+        cb.set(1)
+        fa.set(1)
+        da.set(1)
+        ca.set(1)
+
         label2 = ttk.Label(filters, text="Filter vesicles by behaviour")
         before = ttk.Label(filters, text="Before stimulation")
         after = ttk.Label(filters, text="After stimulation")
-        directedb = ttk.Label(filters, text="Directed")
-        db = ttk.Checkbutton(filters)
         freeb = ttk.Label(filters, text="Free")
-        fb = ttk.Checkbutton(filters)
+        chkfb = ttk.Checkbutton(filters, variable=fb)
+        directedb = ttk.Label(filters, text="Directed")
+        chkdb = ttk.Checkbutton(filters, variable=db)
         cagedb = ttk.Label(filters, text="Caged")
-        cb = ttk.Checkbutton(filters)
-        directeda = ttk.Label(filters, text="Directed")
-        da = ttk.Checkbutton(filters)
+        chkcb = ttk.Checkbutton(filters, variable=cb)
         freea = ttk.Label(filters, text="Free")
-        fa = ttk.Checkbutton(filters)
+        chkfa = ttk.Checkbutton(filters, variable=fa)
+        directeda = ttk.Label(filters, text="Directed")
+        chkda = ttk.Checkbutton(filters, variable=da)
         cageda = ttk.Label(filters, text="Caged")
-        ca = ttk.Checkbutton(filters)
+        chkca = ttk.Checkbutton(filters, variable=ca)
         # Position all the elements
         label2.grid(columnspan=5)
         before.grid(row=1, column=0, columnspan=2)
         after.grid(row=1, column=3, columnspan=2)
-        directedb.grid(row=2, column=0)
-        db.grid(row=2, column=1)
-        directeda.grid(row=2, column=3)
-        da.grid(row=2, column=4)
-        freeb.grid(row=3, column=0)
-        fb.grid(row=3, column=1)
-        freea.grid(row=3, column=3)
-        fa.grid(row=3, column=4)
+        freeb.grid(row=2, column=0)
+        chkfb.grid(row=2, column=1)
+        freea.grid(row=2, column=3)
+        chkfa.grid(row=2, column=4)
+        directedb.grid(row=3, column=0)
+        chkdb.grid(row=3, column=1)
+        directeda.grid(row=3, column=3)
+        chkda.grid(row=3, column=4)
         cagedb.grid(row=4, column=0)
-        cb.grid(row=4, column=1)
+        chkcb.grid(row=4, column=1)
         cageda.grid(row=4, column=3)
-        ca.grid(row=4, column=4)
+        chkca.grid(row=4, column=4)
+
+        self.filters_on = []
+        fil = tk.IntVar()
+        filterchck = ttk.Checkbutton(options,
+                                    text="Apply filters.",
+                                    variable=fil,
+                                    command=lambda: self.apply_filters(
+                                        fil.get(),
+                                        [fb.get(), db.get(), cb.get(),
+                                         fa.get(), da.get(), ca.get()],
+                                        session, canvas))
+        filterchck.grid(row=2)
         # Add filters subframe to the main window frame
         filters.grid(row=5, column=2, sticky="EW")
 
@@ -203,6 +232,12 @@ class CellPage(tk.Frame):
 
         cell_imports.grid(row=6, column=2)
 
+    def apply_filters(self, fil, filters, session, canvas):
+
+        self.filters_on = fil
+        self.filt_list = filters
+        self.cell_display_update(session, canvas)
+
     def disp_change(self, distype, session, canvas):
 
         self.distype = distype
@@ -230,10 +265,16 @@ class CellPage(tk.Frame):
 
             norm = mpl.colors.Normalize(vmin=0, vmax=last_pos[-1].t)
             cmap = mpl.cm.get_cmap('plasma')
-            ax = f.add_axes([0.9, 0.06, 0.02, 0.90], "Time frame")
+
+            ax = f.add_axes([0.9, 0.06, 0.02, 0.90], title="Time frame", facecolor="w")
+
             cb = mpl.colorbar.ColorbarBase(ax, cmap='plasma', norm=norm,
                                            orientation="vertical")
-            cb.set_label('Time frame')
+            cb.set_label('Time frame', color="white")
+            ax.tick_params(colors='white')
+
+            if self.filters_on:
+                vesicles = filering(session, self.filt_list, current_cell)
 
             for vesicle in vesicles:
                 xpos = []
@@ -264,6 +305,15 @@ class CellPage(tk.Frame):
                     x.append(point.x)
                     y.append(point.y)
                 a.scatter(x, y, c='g', s=3)
+
+            # Put axes in white
+            a.spines['bottom'].set_color("white")
+            a.spines['left'].set_color("white")
+            a.tick_params(colors='white')
+
+            # Set parameter to get an equal ratio on both axis,
+            # avoiding distortion
+            a.set_aspect("equal")
 
             canvas.draw()
 
@@ -474,7 +524,8 @@ class VesiclePage(tk.Frame):
             filter(Position.vesicle == last_ves).all()
         norm = mpl.colors.Normalize(vmin=0, vmax=last_pos[-1].t)
         cmap = mpl.cm.get_cmap('plasma')
-        ax = self.vesfig.add_axes([0.9, 0.06, 0.02, 0.90], "Time frame")
+        ax = self.vesfig.add_axes([0.88, 0.06, 0.02, 0.90], "Time frame")
+        ax.tick_params(colors='white')
         cb = mpl.colorbar.ColorbarBase(ax, cmap='plasma', norm=norm,
                                        orientation="vertical")
 
@@ -498,6 +549,13 @@ class VesiclePage(tk.Frame):
                                (ypos[i], ypos[i + 1]),
                                'o-',
                                color=cmap(norm(t[i]))[:3])
+
+        # Editing axis to get white, conserving ration axis
+        self.trajplot.spines['bottom'].set_color("white")
+        self.trajplot.spines['left'].set_color("white")
+        self.trajplot.tick_params(colors='white')
+
+        self.trajplot.set_aspect("equal")
 
         self.trajcanvas.draw()
 
@@ -814,6 +872,7 @@ class StatsPage(tk.Frame):
         distances = dats(session, newcaged)
         self.ccsplot.hist(distances, bins)
 
+        self.statsfig.tight_layout()
         self.statcanvas.draw()
 
         # Edit informations
