@@ -51,4 +51,4 @@ def changevsoriginal(session, stimu, original):
                 newcaged.append(c)
                 calc = 1
 
-    return (newfree, newdir, newcaged, calc)
+    return (newfree, newdir, newcaged, calc, len(cells))

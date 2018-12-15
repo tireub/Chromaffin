@@ -9,7 +9,7 @@ from .PopupMsg import popupmsg
 
 from Models import Cell
 
-
+"""
 # Definition of generic fonts to use in the pages
 LARGE_FONT = ("Verdana", 12)
 NORM_FONT = ("Verdana", 10)
@@ -131,4 +131,42 @@ class VesiclePage(tk.Frame):
         label3.grid()
 
 
-        cell_imports.grid(row=6, column=2)
+        cell_imports.grid(row=6, column=2)"""
+
+# Check wich color scheme to display (magma points, linear timecoded, behaviour colored)
+
+# Extract all vesicles
+
+# If filters = 1
+# For each vesicle, check if we display it
+# Display it with the proper color code
+
+
+
+# Continuous color lines display:
+""" 
+xpos = []
+ypos = []
+t = []
+    
+    positions = session.query(Position). filter(Position.vesicle == vesicle).all()
+    for position in positions:
+        xpos.append(position.x)
+        ypos.append(position.y)
+        t.append(position.t)
+
+    norm = mpl.colors.Normalize(vmin=0, vmax=t[-1)
+    ax = f.add_axes([0.9, 0.06, 0.02, 0.90], "Time frame")
+    cb = mpl.colorbar.ColorbarBase(ax, cmap='magma', norm=norm,
+                                           orientation="vertical")
+    cb.set_label('Time frame')
+
+    for i in len(xpos) - 1:
+        plot(xpos[i:i+1], y[i:i+1], c=norm(t[i])
+        
+        
+   
+   
+   
+            
+"""

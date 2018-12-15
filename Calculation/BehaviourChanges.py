@@ -62,4 +62,5 @@ def behavchange(session, stimu):
         cagedaftvespercent = 0
 
     return(freebefvespercent, dirbefvespercent, cagedbefvespercent,
-           freeaftvespercent, diraftvespercent, cagedaftvespercent)
+           freeaftvespercent, diraftvespercent, cagedaftvespercent,
+           len(cells), len(ves))

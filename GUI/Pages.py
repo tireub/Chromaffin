@@ -29,7 +29,6 @@ a = f.add_subplot(111, facecolor="black")
 
 # Set initial variables
 current_cell = False
-hide_membrane = False
 cell_ves_nbr = 0
 filename = ""
 current_vesicle = False
@@ -114,6 +113,21 @@ class CellPage(tk.Frame):
         cmb.pack()
         cell_selection.grid(row=2, column=2)
 
+        distype = tk.Frame(self)
+        typelabel = ttk.Label(distype, text="Change trajectories display ")
+        self.distype = tk.StringVar()
+        discmb = ttk.Combobox(distype,
+                              width="30",
+                              values=["Scatter dots", "Lines"],
+                              state="readonly")
+        discmb.bind("<<ComboboxSelected>>", lambda _: self.disp_change(
+            discmb.get(), session, canvas))
+        typelabel.pack()
+        discmb.pack()
+        distype.grid(row=3, column=2)
+
+        self.hide_membrane = False
+
         var = tk.IntVar()
         check = ttk.Checkbutton(self,
                                 text="Hide membrane.",
@@ -189,10 +203,14 @@ class CellPage(tk.Frame):
 
         cell_imports.grid(row=6, column=2)
 
-    def switch_membrane_vision(self, state, session, canvas):
-        global hide_membrane
+    def disp_change(self, distype, session, canvas):
 
-        hide_membrane = bool(state)
+        self.distype = distype
+        self.cell_display_update(session, canvas)
+
+    def switch_membrane_vision(self, state, session, canvas):
+
+        self.hide_membrane = bool(state)
         self.cell_display_update(session, canvas)
 
     def cell_display_update(self, session, canvas):
@@ -211,8 +229,9 @@ class CellPage(tk.Frame):
                 filter(Position.vesicle == last_ves).all()
 
             norm = mpl.colors.Normalize(vmin=0, vmax=last_pos[-1].t)
+            cmap = mpl.cm.get_cmap('plasma')
             ax = f.add_axes([0.9, 0.06, 0.02, 0.90], "Time frame")
-            cb = mpl.colorbar.ColorbarBase(ax, cmap='magma', norm=norm,
+            cb = mpl.colorbar.ColorbarBase(ax, cmap='plasma', norm=norm,
                                            orientation="vertical")
             cb.set_label('Time frame')
 
@@ -227,9 +246,18 @@ class CellPage(tk.Frame):
                     ypos.append(position.y)
                     t.append(position.t)
 
-                a.scatter(xpos, ypos, s=3, c=t, cmap='magma', norm=norm)
+                # Check what type of display is required
+                if self.distype == "Lines":
+                    for i in range(len(xpos) - 1):
+                        a.plot((xpos[i], xpos[i + 1]),
+                               (ypos[i], ypos[i + 1]),
+                               color=cmap(norm(t[i]))[:3])
+                else:
+                    a.scatter(xpos, ypos, s=3, c=t, cmap='plasma',
+                              norm=norm)
 
-            if not hide_membrane:
+            # Check if the membrane is to be displayed
+            if not self.hide_membrane:
                 membrane = session.query(MembranePoint). \
                     filter(MembranePoint.cell == current_cell).all()
                 for point in membrane:
@@ -438,23 +466,39 @@ class VesiclePage(tk.Frame):
         self.veschoice.set(current_vesicle + 1)
 
     def ves_display_update(self, session):
-        ves = \
-        session.query(Vesicle).filter(Vesicle.cell == current_cell).all()[
-            current_vesicle]
+        vesicles = \
+        session.query(Vesicle).filter(Vesicle.cell == current_cell).all()
+
+        last_ves = vesicles[-1]
+        last_pos = session.query(Position). \
+            filter(Position.vesicle == last_ves).all()
+        norm = mpl.colors.Normalize(vmin=0, vmax=last_pos[-1].t)
+        cmap = mpl.cm.get_cmap('plasma')
+        ax = self.vesfig.add_axes([0.9, 0.06, 0.02, 0.90], "Time frame")
+        cb = mpl.colorbar.ColorbarBase(ax, cmap='plasma', norm=norm,
+                                       orientation="vertical")
+
+        ves = vesicles[current_vesicle]
 
         # Update the first plot, vesicle traj
         self.trajplot.clear()
         xpos = []
         ypos = []
         t = []
-        positions = session.query(Position). \
-            filter(Position.vesicle == ves).all()
+
+        positions = session.query(Position).filter(
+            Position.vesicle == ves).all()
         for position in positions:
             xpos.append(position.x)
             ypos.append(position.y)
             t.append(position.t)
 
-        self.trajplot.scatter(xpos, ypos, s=3, c=t, cmap='magma')
+        for i in range(len(xpos)-1):
+            self.trajplot.plot((xpos[i], xpos[i + 1]),
+                               (ypos[i], ypos[i + 1]),
+                               'o-',
+                               color=cmap(norm(t[i]))[:3])
+
         self.trajcanvas.draw()
 
         # Update the msdbefore figure
@@ -526,9 +570,9 @@ class StatsPage(tk.Frame):
         self.columnconfigure(4, minsize=200, weight=1)
         self.columnconfigure(5, minsize=200, weight=1)
 
-        self.rowconfigure(0, minsize=50, weight=1)
+        self.rowconfigure(0, minsize=40, weight=1)
         self.rowconfigure(1, minsize=150, weight=3)
-        self.rowconfigure(2, minsize=250, weight=3)
+        self.rowconfigure(2, minsize=100, weight=3)
         self.rowconfigure(3, minsize=50, weight=2)
         self.rowconfigure(4, minsize=50, weight=2)
         self.rowconfigure(5, minsize=50, weight=2)
@@ -555,7 +599,10 @@ class StatsPage(tk.Frame):
 
         self.stat_type = tk.StringVar()
         self.stimu_type = tk.StringVar()
-        self.all_cells = tk.StringVar()
+        self.all_cells = tk.BooleanVar()
+        self.cell_num = tk.IntVar()
+        self.ves_num = tk.IntVar()
+        self.filter = tk.IntVar()
 
         # Subframe summarising what is displayed
         summary = tk.Frame(self, borderwidth=5, relief=tk.SUNKEN)
@@ -565,14 +612,22 @@ class StatsPage(tk.Frame):
         info2 = ttk.Label(summary, textvariable=self.stimu_type)
         slabel3 = ttk.Label(summary, text='All cells included :')
         info3 = ttk.Label(summary, textvariable=self.all_cells)
+        slabel4 = ttk.Label(summary, text='Number of cells studied :')
+        info4 = ttk.Label(summary, textvariable=self.cell_num)
+        slabel5 = ttk.Label(summary, text='Number of vesicles studied :')
+        info5 = ttk.Label(summary, textvariable=self.ves_num)
         exportbutton = ttk.Button(summary, text='Export graph')
         slabel1.grid()
         slabel2.grid(row=1)
         slabel3.grid(row=2)
-        info1.grid(column=1)
+        slabel4.grid(row=3)
+        slabel5.grid(row=4)
+        info1.grid(row=0, column=1)
         info2.grid(row=1, column=1)
         info3.grid(row=2, column=1)
-        exportbutton.grid(row=3, columnspan=2)
+        info4.grid(row=3, column=1)
+        info5.grid(row=4, column=1)
+        exportbutton.grid(row=5, columnspan=2)
         summary.grid(row=1, columnspan=2, sticky="NSEW")
 
         # Subframe to select options for the filters
@@ -596,9 +651,12 @@ class StatsPage(tk.Frame):
                                  text="Chose cells to remove",
                                  command=lambda: popupmsg(
                                      "Not supported yet!"))
-        remove = ttk.Checkbutton(stats_options, text="Remove selected cells")
+        remove = ttk.Checkbutton(stats_options,
+                                 variable=self.filter,
+                                 text="Remove selected cells")
         selectcells.grid(row=1)
         remove.grid(row=1, column=1)
+        oriLabel = ttk.Label(stats_options, text="Select original behaviour :")
         behav = session.query(BehaviourType).all()
         behav_list = []
         for b in behav:
@@ -608,7 +666,8 @@ class StatsPage(tk.Frame):
                                 values=behav_list,
                                 state="readonly")
         original.bind("<<ComboboxSelected>>")
-        original.grid(row=2)
+        oriLabel.grid(row=2)
+        original.grid(row=2, column=1)
         stats_options.grid(row=2, columnspan=2)
 
         # Adding the display options buttons
@@ -644,7 +703,14 @@ class StatsPage(tk.Frame):
     def popchange_display(self, session, stimu):
         self.statsfig.clear()
         self.popsplot = self.statsfig.add_subplot(111)
-        (fb, db, cb, fa, da, ca) = behavchange(session, stimu)
+        (fb, db, cb, fa, da, ca, cellnbr, vesnbr) = behavchange(session, stimu)
+
+        # Edit informations
+        self.stat_type.set("Change in populations")
+        self.stimu_type.set(stimu)
+        self.all_cells.set(not self.filter.get())
+        self.cell_num.set(cellnbr)
+        self.ves_num.set(vesnbr)
 
         # data
         n_groups = 3
@@ -667,7 +733,17 @@ class StatsPage(tk.Frame):
     def ch_vs_ori_display(self, session, stimu, original):
         self.statsfig.clear()
         self.popsplot = self.statsfig.add_subplot(111)
-        (newfree, newdir, newcaged, calc) = chvsori(session, stimu, original)
+        (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
+                                                             stimu,
+                                                             original)
+
+        # Edit informations
+        self.stat_type.set(original + " vesicles new behaviour")
+        self.stimu_type.set(stimu)
+        self.all_cells.set(not self.filter.get())
+        self.cell_num.set(cellnbr)
+        self.ves_num.set(len(newfree) + len(newdir) + len(newcaged))
+
         if calc:
             sum = len(newfree) + len(newdir) + len(newcaged)
             nfper = len(newfree) / sum
@@ -689,11 +765,15 @@ class StatsPage(tk.Frame):
 
     def nine_quadrants_display(self, session, stimu):
         self.statsfig.clear()
-        bins = np.linspace(0, 5, 11)
+        bins = np.linspace(0, 7, 15)
+
+        vestotal = 0
 
         # Originally free
-        (newfree, newdir, newcaged, calc) = chvsori(session, stimu, "Free")
-
+        (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
+                                                             stimu,
+                                                             "Free")
+        vestotal += (len(newfree) + len(newdir) + len(newcaged))
         self.ffsplot = self.statsfig.add_subplot(331)
         distances = dats(session, newfree)
         self.ffsplot.hist(distances, bins)
@@ -705,7 +785,10 @@ class StatsPage(tk.Frame):
         self.fcsplot.hist(distances, bins)
 
         # Originally directed
-        (newfree, newdir, newcaged, calc) = chvsori(session, stimu, "Directed")
+        (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
+                                                             stimu,
+                                                             "Directed")
+        vestotal += (len(newfree) + len(newdir) + len(newcaged))
         self.dfsplot = self.statsfig.add_subplot(334)
         distances = dats(session, newfree)
         self.dfsplot.hist(distances, bins)
@@ -717,7 +800,10 @@ class StatsPage(tk.Frame):
         self.dcsplot.hist(distances, bins)
 
         # Originally caged
-        (newfree, newdir, newcaged, calc) = chvsori(session, stimu, "Caged")
+        (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
+                                                             stimu,
+                                                             "Caged")
+        vestotal += (len(newfree) + len(newdir) + len(newcaged))
         self.cfsplot = self.statsfig.add_subplot(337)
         distances = dats(session, newfree)
         self.cfsplot.hist(distances, bins)
@@ -729,3 +815,10 @@ class StatsPage(tk.Frame):
         self.ccsplot.hist(distances, bins)
 
         self.statcanvas.draw()
+
+        # Edit informations
+        self.stat_type.set("Vesicles switch distance to the membrane")
+        self.stimu_type.set(stimu)
+        self.all_cells.set(not self.filter.get())
+        self.cell_num.set(cellnbr)
+        self.ves_num.set(vestotal)
