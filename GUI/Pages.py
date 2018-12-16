@@ -23,11 +23,13 @@ mpl.use("TkAgg")
 SELECTED_FONT = ("Verdana 12 bold")
 LARGE_FONT = ("Verdana", 12)
 NORM_FONT = ("Verdana", 10)
+FRAME_TITLE_FONT = ("Verdana 10 bold")
+FRAME_IT_FONT = ("Verdana 10 italic")
 
 # Gestion of the figure
 f = Figure(facecolor="black")
 a = f.add_subplot(111, facecolor="black")
-f.subplots_adjust(left=0.05,right=0.85,bottom=0.1,top=0.9)
+f.subplots_adjust(left=0.05, right=0.85, bottom=0.1, top=0.9)
 
 # Set initial variables
 current_cell = False
@@ -98,8 +100,10 @@ class CellPage(tk.Frame):
         toolbar = NavigationToolbar2Tk(canvas, toolbarFrame)
 
         # Definition of the interaction functions
+        # Cell selection
         cell_selection = tk.Frame(self)
-        label1 = ttk.Label(cell_selection, text="Select desired cell :")
+        label1 = ttk.Label(cell_selection, text="Select desired cell :",
+                           font=FRAME_TITLE_FONT)
         label1.pack()
         existingcells = session.query(Cell).all()
         cell_list = []
@@ -109,23 +113,75 @@ class CellPage(tk.Frame):
         cmb = ttk.Combobox(cell_selection,
                            width="30",
                            values=cell_list,
-                           state="readonly")
+                           state="readonly",
+                           justify="center")
         cmb.bind("<<ComboboxSelected>>", lambda _: self.cell_change(
             cmb.get(), session, canvas))
         cmb.pack()
-        cell_selection.grid(row=2, column=2)
+        cell_selection.grid(row=1, column=2, pady=(5, 5))
+
+        # Definition of the infos frame
+        self.cell_value = tk.StringVar()
+        self.ves_nbr = tk.IntVar()
+        self.stimu_value = tk.StringVar()
+        self.frames_nbr = tk.IntVar()
+        self.stimu_frame = tk.IntVar()
+        self.cell_value.set("NA")
+        self.ves_nbr.set(0)
+        self.stimu_value.set("NA")
+        self.frames_nbr.set(0)
+        self.stimu_frame.set(0)
+
+        infos = tk.Frame(self, borderwidth=5, relief=tk.SUNKEN)
+        infos.grid_columnconfigure(0, weight=1)
+        infos.grid_columnconfigure(1, weight=1)
+        infos.grid_columnconfigure(2, weight=1)
+        for i in range(6):
+            infos.grid_rowconfigure(i, weight=1)
+        infoLabel = ttk.Label(infos, text='Cell informations',
+                              font=FRAME_TITLE_FONT)
+        ilabel1 = ttk.Label(infos, text='Cell name :', font=FRAME_IT_FONT)
+        ilabel2 = ttk.Label(infos, text='Number of vesicles :',
+                            font=FRAME_IT_FONT)
+        ilabel3 = ttk.Label(infos, text='Type of stimulation :',
+                            font=FRAME_IT_FONT)
+        ilabel4 = ttk.Label(infos, text='Total number of frames :',
+                            font=FRAME_IT_FONT)
+        ilabel5 = ttk.Label(infos, text='Stimulation frame :',
+                            font=FRAME_IT_FONT)
+        info1 = ttk.Label(infos, textvariable=self.cell_value)
+        info2 = ttk.Label(infos, textvariable=self.ves_nbr)
+        info3 = ttk.Label(infos, textvariable=self.stimu_value)
+        info4 = ttk.Label(infos, textvariable=self.frames_nbr)
+        info5 = ttk.Label(infos, textvariable=self.stimu_frame)
+        infoLabel.grid(row=0, column=0, columnspan=3)
+        ilabel1.grid(row=1, column=0)
+        info1.grid(row=1, column=1, columnspan=2)
+        ilabel2.grid(row=2, column=0)
+        info2.grid(row=2, column=1, columnspan=2)
+        ilabel3.grid(row=3, column=0)
+        info3.grid(row=3, column=1, columnspan=2)
+        ilabel4.grid(row=4, column=0)
+        info4.grid(row=4, column=1, columnspan=2)
+        ilabel5.grid(row=5, column=0)
+        info5.grid(row=5, column=1, columnspan=2)
+
+        # Add infos subframe to the main window frame
+        infos.grid(row=2, column=2, sticky="NSEW")
 
         distype = tk.Frame(self)
-        typelabel = ttk.Label(distype, text="Change trajectories display ")
+        typelabel = ttk.Label(distype, text="Change trajectories display ",
+                              font=FRAME_TITLE_FONT)
         self.distype = tk.StringVar()
         discmb = ttk.Combobox(distype,
                               width="30",
                               values=["Scatter dots", "Lines"],
-                              state="readonly")
+                              state="readonly",
+                              justify="center")
         discmb.bind("<<ComboboxSelected>>", lambda _: self.disp_change(
             discmb.get(), session, canvas))
-        typelabel.pack()
-        discmb.pack()
+        typelabel.grid(row=0)
+        discmb.grid(row=1, pady=(5, 5))
         distype.grid(row=3, column=2)
 
         self.hide_membrane = False
@@ -156,9 +212,12 @@ class CellPage(tk.Frame):
         da.set(1)
         ca.set(1)
 
-        label2 = ttk.Label(filters, text="Filter vesicles by behaviour")
-        before = ttk.Label(filters, text="Before stimulation")
-        after = ttk.Label(filters, text="After stimulation")
+        label2 = ttk.Label(filters, text="Filter vesicles by behaviour",
+                           font=FRAME_TITLE_FONT)
+        before = ttk.Label(filters, text="Before stimulation",
+                           font=FRAME_IT_FONT)
+        after = ttk.Label(filters, text="After stimulation",
+                          font=FRAME_IT_FONT)
         freeb = ttk.Label(filters, text="Free")
         chkfb = ttk.Checkbutton(filters, variable=fb)
         directedb = ttk.Label(filters, text="Directed")
@@ -172,7 +231,9 @@ class CellPage(tk.Frame):
         cageda = ttk.Label(filters, text="Caged")
         chkca = ttk.Checkbutton(filters, variable=ca)
         # Position all the elements
-        label2.grid(columnspan=5)
+        for i in range(6):
+            filters.grid_columnconfigure(i, weight=1)
+        label2.grid(row=0, column=0, columnspan=5)
         before.grid(row=1, column=0, columnspan=2)
         after.grid(row=1, column=3, columnspan=2)
         freeb.grid(row=2, column=0)
@@ -191,13 +252,13 @@ class CellPage(tk.Frame):
         self.filters_on = []
         fil = tk.IntVar()
         filterchck = ttk.Checkbutton(options,
-                                    text="Apply filters.",
-                                    variable=fil,
-                                    command=lambda: self.apply_filters(
-                                        fil.get(),
-                                        [fb.get(), db.get(), cb.get(),
-                                         fa.get(), da.get(), ca.get()],
-                                        session, canvas))
+                                     text="Apply filters.",
+                                     variable=fil,
+                                     command=lambda: self.apply_filters(
+                                         fil.get(),
+                                         [fb.get(), db.get(), cb.get(),
+                                          fa.get(), da.get(), ca.get()],
+                                         session, canvas))
         filterchck.grid(row=2)
         # Add filters subframe to the main window frame
         filters.grid(row=5, column=2, sticky="EW")
@@ -205,7 +266,8 @@ class CellPage(tk.Frame):
         # Import functions
         cell_imports = tk.Frame(self, borderwidth=5, relief=tk.RAISED)
         label3 = ttk.Label(cell_imports,
-                           text="Import and calculation functions for a cell")
+                           text="Import and calculation functions for a cell",
+                           font=FRAME_TITLE_FONT)
 
         new_cell = ttk.Button(cell_imports,
                               text="Import tracked positions",
@@ -266,7 +328,8 @@ class CellPage(tk.Frame):
             norm = mpl.colors.Normalize(vmin=0, vmax=last_pos[-1].t)
             cmap = mpl.cm.get_cmap('plasma')
 
-            ax = f.add_axes([0.9, 0.06, 0.02, 0.90], title="Time frame", facecolor="w")
+            ax = f.add_axes([0.9, 0.06, 0.02, 0.90],
+                            title="Time frame", facecolor="w")
 
             cb = mpl.colorbar.ColorbarBase(ax, cmap='plasma', norm=norm,
                                            orientation="vertical")
@@ -306,16 +369,30 @@ class CellPage(tk.Frame):
                     y.append(point.y)
                 a.scatter(x, y, c='g', s=3)
 
+            # Truncate cell name if needed
+            if len(current_cell.name) > 35:
+                shortname = current_cell.name[:35] + "..."
+            else:
+                shortname = current_cell.name
+
             # Put axes in white
             a.spines['bottom'].set_color("white")
             a.spines['left'].set_color("white")
             a.tick_params(colors='white')
+            a.set_title(shortname, color="white")
 
             # Set parameter to get an equal ratio on both axis,
             # avoiding distortion
             a.set_aspect("equal")
 
             canvas.draw()
+
+            # Set cell infos
+            self.cell_value.set(shortname)
+            self.ves_nbr.set(len(current_cell.vesicles))
+            self.stimu_value.set(current_cell.stimulation_type.chemical)
+            self.frames_nbr.set(last_pos[-1].t)
+            self.stimu_frame.set(current_cell.stimulation_time)
 
     def cell_change(self, newcell, session, canvas):
         global current_cell
@@ -364,8 +441,10 @@ class VesiclePage(tk.Frame):
         # Vesicle selection panel
         ves_selection = tk.Frame(self)
 
-        label1 = ttk.Label(ves_selection, text="Select desired cell :")
-        label1.grid(row=0, column=0)
+        label1 = ttk.Label(ves_selection,
+                           text="Select desired cell :",
+                           font=FRAME_TITLE_FONT)
+        label1.grid(row=0, column=0, columnspan=4, pady=(10, 0))
         existingcells = session.query(Cell).all()
         cell_list = []
         for c in existingcells:
@@ -374,11 +453,14 @@ class VesiclePage(tk.Frame):
         cmb = ttk.Combobox(ves_selection,
                            width="30",
                            values=cell_list,
-                           state="readonly")
+                           state="readonly",
+                           justify="center")
         cmb.bind("<<ComboboxSelected>>", lambda _: self.cell_change(cmb.get(),
                                                                     session))
-        cmb.grid(row=0, column=1)
-        vesLabel = ttk.Label(ves_selection, text="Select desired vesicle")
+        cmb.grid(row=1, column=0, columnspan=4, pady=(0, 25))
+        vesLabel = ttk.Label(ves_selection,
+                             text="Select desired vesicle :",
+                             font=FRAME_TITLE_FONT)
         prevButton = ttk.Button(ves_selection,
                                 text='Previous',
                                 command=lambda: self.ves_update(
@@ -389,20 +471,20 @@ class VesiclePage(tk.Frame):
                                 command=lambda: self.ves_update(
                                     session, "Next"),
                                 style='my.TButton')
-        choosenbr = ttk.Label(ves_selection, text="Choose a vesicle number")
         self.veschoice = tk.StringVar()
-        vesnbr = ttk.Entry(ves_selection,  textvariable=self.veschoice)
+        vesnbr = ttk.Entry(ves_selection,
+                           textvariable=self.veschoice,
+                           justify="center")
         choosebtn = ttk.Button(ves_selection,
-                               text="Go",
+                               text="Set vesicle number",
                                command=lambda: self.ves_update(
                                    session, vesnbr.get()),
                                style='my.TButton')
-        vesLabel.grid(row=1, columnspan=2)
-        prevButton.grid(row=2)
-        nextButton.grid(row=2, column=1)
-        choosenbr.grid(row=3)
-        vesnbr.grid(row=3, column=1)
-        choosebtn.grid(row=3, column=2)
+        vesLabel.grid(row=2, column=0, columnspan=4)
+        prevButton.grid(row=3, column=1, sticky="EW", padx=(5, 5), pady=(5, 5))
+        nextButton.grid(row=3, column=3, sticky="EW", padx=(5, 5), pady=(5, 5))
+        vesnbr.grid(row=3, column=2, sticky="EW", padx=(5, 5), pady=(5, 5))
+        choosebtn.grid(row=4, column=2)
 
         ves_selection.grid(row=1, column=0, columnspan=3)
 
@@ -442,18 +524,30 @@ class VesiclePage(tk.Frame):
         self.aft_value.set("NA")
 
         infos = tk.Frame(self, borderwidth=5, relief=tk.SUNKEN)
-        infoLabel = ttk.Label(infos, text='Vesicle informations')
-        ilabel1 = ttk.Label(infos, text='Cell name :')
-        ilabel2 = ttk.Label(infos, text='Vesicle number :')
-        ilabel3 = ttk.Label(infos, text='Number of points :')
-        ilabel4 = ttk.Label(infos, text='Behaviour before stimulation :')
-        ilabel5 = ttk.Label(infos, text='Behaviour before stimulation :')
+        infos.grid_columnconfigure(0, weight=1)
+        infos.grid_columnconfigure(1, weight=1)
+        infos.grid_columnconfigure(2, weight=1)
+        for i in range(6):
+            infos.grid_rowconfigure(i, weight=1)
+        infoLabel = ttk.Label(infos,
+                              text='Vesicle informations',
+                              font=FRAME_TITLE_FONT)
+        ilabel1 = ttk.Label(infos, text='Cell name :', font=FRAME_IT_FONT)
+        ilabel2 = ttk.Label(infos, text='Vesicle number :', font=FRAME_IT_FONT)
+        ilabel3 = ttk.Label(infos, text='Number of points :',
+                            font=FRAME_IT_FONT)
+        ilabel4 = ttk.Label(infos,
+                            text='Behaviour before stimulation :',
+                            font=FRAME_IT_FONT)
+        ilabel5 = ttk.Label(infos,
+                            text='Behaviour before stimulation :',
+                            font=FRAME_IT_FONT)
         info1 = ttk.Label(infos, textvariable=self.cell_value)
         info2 = ttk.Label(infos, textvariable=self.ves_value)
         info3 = ttk.Label(infos, textvariable=self.points_value)
         info4 = ttk.Label(infos, textvariable=self.bef_value)
         info5 = ttk.Label(infos, textvariable=self.aft_value)
-        infoLabel.grid(row=0, columnspan=2)
+        infoLabel.grid(row=0, columnspan=3)
         ilabel1.grid(row=1, column=0)
         info1.grid(row=1, column=1)
         ilabel2.grid(row=2, column=0)
@@ -517,14 +611,14 @@ class VesiclePage(tk.Frame):
 
     def ves_display_update(self, session):
         vesicles = \
-        session.query(Vesicle).filter(Vesicle.cell == current_cell).all()
+            session.query(Vesicle).filter(Vesicle.cell == current_cell).all()
 
         last_ves = vesicles[-1]
         last_pos = session.query(Position). \
             filter(Position.vesicle == last_ves).all()
         norm = mpl.colors.Normalize(vmin=0, vmax=last_pos[-1].t)
         cmap = mpl.cm.get_cmap('plasma')
-        ax = self.vesfig.add_axes([0.88, 0.06, 0.02, 0.90], "Time frame")
+        ax = self.vesfig.add_axes([0.89, 0.06, 0.02, 0.90], "Time frame")
         ax.tick_params(colors='white')
         cb = mpl.colorbar.ColorbarBase(ax, cmap='plasma', norm=norm,
                                        orientation="vertical")
@@ -550,11 +644,11 @@ class VesiclePage(tk.Frame):
                                'o-',
                                color=cmap(norm(t[i]))[:3])
 
-        # Editing axis to get white, conserving ration axis
+        # Configuration of axis, and label, conserving ration axis
         self.trajplot.spines['bottom'].set_color("white")
         self.trajplot.spines['left'].set_color("white")
         self.trajplot.tick_params(colors='white')
-
+        self.trajplot.set_title("Vesicle positions", color="white")
         self.trajplot.set_aspect("equal")
 
         self.trajcanvas.draw()
@@ -573,6 +667,8 @@ class VesiclePage(tk.Frame):
             fit = np.polyfit(dt, y, 2)
             fits = [fit[0]*i**2 + fit[1]*i for i in dt]
             self.msdbefplot.plot(dt, fits)
+        self.msdbefplot.set_title("MSD before stimulation")
+        self.msdbefplot.set_xlabel("Delta T")
         self.msdbefcanv.draw()
 
         # Update the MSDaft figure
@@ -590,11 +686,17 @@ class VesiclePage(tk.Frame):
             fit = np.polyfit(dt, y, 2)
             fits = [fit[0] * i ** 2 + fit[1] * i for i in dt]
             self.msdaftplot.plot(dt, fits)
-
+        self.msdaftplot.set_title("MSD after stimulation")
+        self.msdaftplot.set_xlabel("Delta T")
         self.msdaftcanv.draw()
 
         # Update the right panel values
-        self.cell_value.set(current_cell.name)
+        # Truncate cell name if needed
+        if len(current_cell.name) > 35:
+            shortname = current_cell.name[:35] + "..."
+        else:
+            shortname = current_cell.name
+        self.cell_value.set(shortname)
         self.ves_value.set(current_vesicle+1)
         self.points_value.set(ves.track_duration)
         try:
@@ -664,15 +766,25 @@ class StatsPage(tk.Frame):
 
         # Subframe summarising what is displayed
         summary = tk.Frame(self, borderwidth=5, relief=tk.SUNKEN)
-        slabel1 = ttk.Label(summary, text='Statistics displayed :')
-        info1 = ttk.Label(summary, textvariable=self.stat_type)
-        slabel2 = ttk.Label(summary, text='Type of stimulation :')
+        for i in range(6):
+            summary.rowconfigure(i, weight=1)
+        summary.columnconfigure(0, weight=1)
+        summary.columnconfigure(1, weight=1)
+        slabel1 = ttk.Label(summary, text='Statistics displayed :',
+                            font=FRAME_IT_FONT)
+        info1 = ttk.Label(summary, textvariable=self.stat_type,
+                          font=FRAME_TITLE_FONT)
+        slabel2 = ttk.Label(summary, text='Type of stimulation :',
+                            font=FRAME_IT_FONT)
         info2 = ttk.Label(summary, textvariable=self.stimu_type)
-        slabel3 = ttk.Label(summary, text='All cells included :')
+        slabel3 = ttk.Label(summary, text='All cells included :',
+                            font=FRAME_IT_FONT)
         info3 = ttk.Label(summary, textvariable=self.all_cells)
-        slabel4 = ttk.Label(summary, text='Number of cells studied :')
+        slabel4 = ttk.Label(summary, text='Number of cells :',
+                            font=FRAME_IT_FONT)
         info4 = ttk.Label(summary, textvariable=self.cell_num)
-        slabel5 = ttk.Label(summary, text='Number of vesicles studied :')
+        slabel5 = ttk.Label(summary, text='Number of vesicles :',
+                            font=FRAME_IT_FONT)
         info5 = ttk.Label(summary, textvariable=self.ves_num)
         exportbutton = ttk.Button(summary, text='Export graph')
         slabel1.grid()
@@ -690,9 +802,9 @@ class StatsPage(tk.Frame):
 
         # Subframe to select options for the filters
         stats_options = tk.Frame(self)
+
         type_label = ttk.Label(stats_options,
                                text="Select the stimulation type :")
-
         stimutypes = session.query(StimulationType).all()
         stimu_list = []
         for c in stimutypes:
@@ -703,8 +815,8 @@ class StatsPage(tk.Frame):
                            values=stimu_list,
                            state="readonly")
         cmb.bind("<<ComboboxSelected>>")
-        type_label.grid(row=0)
-        cmb.grid(row=0, column=1)
+        type_label.grid(row=0, pady=(10, 20))
+        cmb.grid(row=0, column=1, pady=(10, 20))
         selectcells = ttk.Button(stats_options,
                                  text="Chose cells to remove",
                                  command=lambda: popupmsg(
@@ -712,8 +824,8 @@ class StatsPage(tk.Frame):
         remove = ttk.Checkbutton(stats_options,
                                  variable=self.filter,
                                  text="Remove selected cells")
-        selectcells.grid(row=1)
-        remove.grid(row=1, column=1)
+        selectcells.grid(row=1, pady=(10, 10))
+        remove.grid(row=1, column=1, pady=(10, 10))
         oriLabel = ttk.Label(stats_options, text="Select original behaviour :")
         behav = session.query(BehaviourType).all()
         behav_list = []
@@ -724,8 +836,8 @@ class StatsPage(tk.Frame):
                                 values=behav_list,
                                 state="readonly")
         original.bind("<<ComboboxSelected>>")
-        oriLabel.grid(row=2)
-        original.grid(row=2, column=1)
+        oriLabel.grid(row=2, pady=(20, 10))
+        original.grid(row=2, column=1, pady=(20, 10))
         stats_options.grid(row=2, columnspan=2)
 
         # Adding the display options buttons
@@ -759,125 +871,175 @@ class StatsPage(tk.Frame):
                                              columnspan=4, sticky="NSEW")
 
     def popchange_display(self, session, stimu):
-        self.statsfig.clear()
-        self.popsplot = self.statsfig.add_subplot(111)
-        (fb, db, cb, fa, da, ca, cellnbr, vesnbr) = behavchange(session, stimu)
+        if not stimu:
+            popupmsg("Please select a stimulation type "
+                     "before trying to get statistics.")
+        else:
+            self.statsfig.clear()
+            self.popsplot = self.statsfig.add_subplot(111)
+            (fb, db, cb,
+             fa, da, ca, cellnbr, vesnbr) = behavchange(session, stimu)
 
-        # Edit informations
-        self.stat_type.set("Change in populations")
-        self.stimu_type.set(stimu)
-        self.all_cells.set(not self.filter.get())
-        self.cell_num.set(cellnbr)
-        self.ves_num.set(vesnbr)
+            # Edit informations
+            self.stat_type.set("Change in populations")
+            self.stimu_type.set(stimu)
+            self.all_cells.set(not self.filter.get())
+            self.cell_num.set(cellnbr)
+            self.ves_num.set(vesnbr)
 
-        # data
-        n_groups = 3
-        before = (fb, db, cb)
-        after = (fa, da, ca)
+            # data
+            before = [fb, db, cb]
+            after = [fa, da, ca]
 
-        index = np.arange(n_groups)
-        bar_width = 0.35
-        opacity = 0.8
+            labels = ("Free", "Directed", "Caged")
+            y_pos = np.arange(len(labels))
 
-        self.popsplot.bar(index, before, bar_width, alpha=opacity,
-                          color='b', label='Before')
-        self.popsplot.bar(index + bar_width, after, bar_width,
-                          alpha=opacity, color='g', label='After')
-        self.popsplot.axes.set_xticklabels(('', 'Free', '',
-                                            'Directed', '', 'Caged'))
+            bar_width = 0.35
+            opacity = 0.8
+            labels = ("", "Free", "", "Directed", "", "Caged")
+            b = self.popsplot.bar(y_pos, before, bar_width,
+                                  label='Before', align='center')
+            b[0].set_color('#00CC00')
+            b[1].set_color('#99CCFF')
+            b[2].set_color('#FF6666')
+            a = self.popsplot.bar(y_pos + bar_width, after, bar_width,
+                                  label='After')
+            a[0].set_color('g')
+            a[1].set_color('b')
+            a[2].set_color('r')
+            self.popsplot.axes.set_xticklabels(labels,
+                                               fontdict=None,
+                                               minor=False)
+            self.popsplot.axes.tick_params(axis='x',
+                                           which='both',
+                                           bottom=False,
+                                           top=False)
+            self.popsplot.axes.set_title("Populations percentage changes")
 
-        self.statcanvas.draw()
+            self.statcanvas.draw()
 
     def ch_vs_ori_display(self, session, stimu, original):
-        self.statsfig.clear()
-        self.popsplot = self.statsfig.add_subplot(111)
-        (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
-                                                             stimu,
-                                                             original)
+        if not stimu:
+            popupmsg("Please select a stimulation type "
+                     "before trying to get statistics.")
 
-        # Edit informations
-        self.stat_type.set(original + " vesicles new behaviour")
-        self.stimu_type.set(stimu)
-        self.all_cells.set(not self.filter.get())
-        self.cell_num.set(cellnbr)
-        self.ves_num.set(len(newfree) + len(newdir) + len(newcaged))
+        elif not original:
+            popupmsg("Please select an original behaviour "
+                     "before trying to get statistics.")
 
-        if calc:
-            sum = len(newfree) + len(newdir) + len(newcaged)
-            nfper = len(newfree) / sum
-            ndper = len(newdir) / sum
-            ncper = len(newcaged) / sum
         else:
-            nfper = 0
-            ndper = 0
-            ncper = 0
+            self.statsfig.clear()
+            self.popsplot = self.statsfig.add_subplot(111)
+            (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
+                                                                 stimu,
+                                                                 original)
 
-        labels = ("Free", "Directed", "Caged")
-        y_pos = np.arange(len(labels))
-        values = [nfper, ndper, ncper]
-        self.popsplot.bar(y_pos, values, align='center')
-        labels = ("", "", "Free", "", "Directed", "", "Caged")
-        self.popsplot.axes.set_xticklabels(labels, fontdict=None, minor=False)
+            # Edit informations
+            self.stat_type.set(original + " vesicles new behaviour")
+            self.stimu_type.set(stimu)
+            self.all_cells.set(not self.filter.get())
+            self.cell_num.set(cellnbr)
+            self.ves_num.set(len(newfree) + len(newdir) + len(newcaged))
 
-        self.statcanvas.draw()
+            if calc:
+                sum = len(newfree) + len(newdir) + len(newcaged)
+                nfper = len(newfree) / sum
+                ndper = len(newdir) / sum
+                ncper = len(newcaged) / sum
+            else:
+                nfper = 0
+                ndper = 0
+                ncper = 0
+
+            title = original + " vesicles new behaviour"
+            labels = ("Free", "Directed", "Caged")
+            y_pos = np.arange(len(labels))
+            values = [nfper, ndper, ncper]
+            bar = self.popsplot.bar(y_pos, values, align='center')
+            bar[0].set_color('g')
+            bar[2].set_color('r')
+            labels = ("", "", "Free", "", "Directed", "", "Caged")
+            self.popsplot.axes.set_xticklabels(labels,
+                                               fontdict=None,
+                                               minor=False)
+            self.popsplot.axes.tick_params(axis='x',
+                                           which='both',
+                                           bottom=False,
+                                           top=False)
+            self.popsplot.axes.set_title(title)
+
+            self.statcanvas.draw()
 
     def nine_quadrants_display(self, session, stimu):
-        self.statsfig.clear()
-        bins = np.linspace(0, 7, 15)
+        if not stimu:
+            popupmsg("Please select a stimulation type "
+                     "before trying to get statistics.")
+        else:
+            self.statsfig.clear()
+            bins = np.linspace(0, 7, 15)
 
-        vestotal = 0
+            vestotal = 0
 
-        # Originally free
-        (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
-                                                             stimu,
-                                                             "Free")
-        vestotal += (len(newfree) + len(newdir) + len(newcaged))
-        self.ffsplot = self.statsfig.add_subplot(331)
-        distances = dats(session, newfree)
-        self.ffsplot.hist(distances, bins)
-        self.fdsplot = self.statsfig.add_subplot(332)
-        distances = dats(session, newdir)
-        self.fdsplot.hist(distances, bins)
-        self.fcsplot = self.statsfig.add_subplot(333)
-        distances = dats(session, newcaged)
-        self.fcsplot.hist(distances, bins)
+            # Originally free
+            (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
+                                                                 stimu,
+                                                                 "Free")
+            vestotal += (len(newfree) + len(newdir) + len(newcaged))
+            self.ffsplot = self.statsfig.add_subplot(331)
+            distances = dats(session, newfree)
+            self.ffsplot.hist(distances, bins, color="g")
+            self.ffsplot.axes.set_title("F2F")
+            self.fdsplot = self.statsfig.add_subplot(332)
+            distances = dats(session, newdir)
+            self.fdsplot.hist(distances, bins)
+            self.fdsplot.axes.set_title("F2D")
+            self.fcsplot = self.statsfig.add_subplot(333)
+            distances = dats(session, newcaged)
+            self.fcsplot.hist(distances, bins, color="r")
+            self.fcsplot.axes.set_title("F2C")
 
-        # Originally directed
-        (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
-                                                             stimu,
-                                                             "Directed")
-        vestotal += (len(newfree) + len(newdir) + len(newcaged))
-        self.dfsplot = self.statsfig.add_subplot(334)
-        distances = dats(session, newfree)
-        self.dfsplot.hist(distances, bins)
-        self.ddsplot = self.statsfig.add_subplot(335)
-        distances = dats(session, newdir)
-        self.ddsplot.hist(distances, bins)
-        self.dcsplot = self.statsfig.add_subplot(336)
-        distances = dats(session, newcaged)
-        self.dcsplot.hist(distances, bins)
+            # Originally directed
+            (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
+                                                                 stimu,
+                                                                 "Directed")
+            vestotal += (len(newfree) + len(newdir) + len(newcaged))
+            self.dfsplot = self.statsfig.add_subplot(334)
+            distances = dats(session, newfree)
+            self.dfsplot.hist(distances, bins, color="g")
+            self.dfsplot.axes.set_title("D2F")
+            self.ddsplot = self.statsfig.add_subplot(335)
+            distances = dats(session, newdir)
+            self.ddsplot.hist(distances, bins)
+            self.ddsplot.axes.set_title("D2D")
+            self.dcsplot = self.statsfig.add_subplot(336)
+            distances = dats(session, newcaged)
+            self.dcsplot.hist(distances, bins, color="r")
+            self.dcsplot.axes.set_title("D2C")
 
-        # Originally caged
-        (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
-                                                             stimu,
-                                                             "Caged")
-        vestotal += (len(newfree) + len(newdir) + len(newcaged))
-        self.cfsplot = self.statsfig.add_subplot(337)
-        distances = dats(session, newfree)
-        self.cfsplot.hist(distances, bins)
-        self.cdsplot = self.statsfig.add_subplot(338)
-        distances = dats(session, newdir)
-        self.cdsplot.hist(distances, bins)
-        self.ccsplot = self.statsfig.add_subplot(339)
-        distances = dats(session, newcaged)
-        self.ccsplot.hist(distances, bins)
+            # Originally caged
+            (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
+                                                                 stimu,
+                                                                 "Caged")
+            vestotal += (len(newfree) + len(newdir) + len(newcaged))
+            self.cfsplot = self.statsfig.add_subplot(337)
+            distances = dats(session, newfree)
+            self.cfsplot.hist(distances, bins, color="g")
+            self.cfsplot.axes.set_title("C2F")
+            self.cdsplot = self.statsfig.add_subplot(338)
+            distances = dats(session, newdir)
+            self.cdsplot.hist(distances, bins)
+            self.cdsplot.axes.set_title("C2D")
+            self.ccsplot = self.statsfig.add_subplot(339)
+            distances = dats(session, newcaged)
+            self.ccsplot.hist(distances, bins, color="r")
+            self.ccsplot.axes.set_title("C2C")
 
-        self.statsfig.tight_layout()
-        self.statcanvas.draw()
+            self.statsfig.tight_layout()
+            self.statcanvas.draw()
 
-        # Edit informations
-        self.stat_type.set("Vesicles switch distance to the membrane")
-        self.stimu_type.set(stimu)
-        self.all_cells.set(not self.filter.get())
-        self.cell_num.set(cellnbr)
-        self.ves_num.set(vestotal)
+            # Edit informations
+            self.stat_type.set("Switch distance")
+            self.stimu_type.set(stimu)
+            self.all_cells.set(not self.filter.get())
+            self.cell_num.set(cellnbr)
+            self.ves_num.set(vestotal)
