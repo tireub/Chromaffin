@@ -5,6 +5,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import numpy as np
 import tkinter as tk
+import webbrowser
 from tkinter import ttk
 from Models import Cell, Position, MembranePoint,\
     Vesicle, MSD, VesicleBehaviour, StimulationType, BehaviourType
@@ -43,19 +44,30 @@ class StartPage(tk.Frame):
 
     def __init__(self, parent, controller, session):
         tk.Frame.__init__(self, parent)
+        for i in range(2):
+            self.columnconfigure(i, weight=1)
+        for i in range(3):
+            self.rowconfigure(i, weight=1)
         label = tk.Label(self, text=("""Chromaffin cells study application.
-        Alpha version.
-        Use carefully.
-        Consult README to get proper instructions."""))
-        label.pack(pady=10, padx=10)
+        Alpha version."""), font=LARGE_FONT)
+        link = tk.Label(self,
+                        text='Consult README to get proper instructions.',
+                        fg="blue", cursor="hand2", font=LARGE_FONT)
+        link.bind("<Button-1>", self.callback)
 
-        button1 = ttk.Button(self, text="Agree",
+
+        label.grid(row=0, columnspan=2, pady=100)
+        link.grid(row=1, columnspan=2, pady=100)
+        button1 = ttk.Button(self, text="Proceed",
                              command=lambda: controller.show_frame(CellPage))
-        button1.pack()
+        button1.grid(row=2, column=0, sticky="NSEW", pady=30, padx=30)
 
-        button2 = ttk.Button(self, text="Disagree",
+        button2 = ttk.Button(self, text="Quit",
                              command=quit)
-        button2.pack()
+        button2.grid(row=2, column=1, sticky="NSEW", pady=30, padx=30)
+
+    def callback(self, event):
+        webbrowser.open_new("https://github.com/tireub/Chromaffin/blob/master/README.md")
 
 
 # Definition of the cell page

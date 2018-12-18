@@ -35,12 +35,14 @@ please contact guillaume.maucort@gmail.com
 
 ## User's guide
 
-###Start page 
+### Start page 
 Basic welcome page summarising informations about the project and asking for a confirmation before going further within the GUI.
 
-##General display 
+### General display 
 The GUI is mainly composed of three thumbnails to allow for navigation between the main functions of the program, by clicking on the requested thumbnail name.
 The current thumbnail is highlighted with a bold font.
+
+!["Choice image" ](/Docs/Screenshots/Thumbnails_nav.png)
 
 ### Cell thumbnail
 The cell thumbnail provides an overview of the cells included in the database.
