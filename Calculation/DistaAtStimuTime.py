@@ -12,7 +12,7 @@ def dist_at_stimu(session, vesiclesIDs):
         pos = session.query(Position).filter(Position.vesicle == ves,
                                              Position.t == stimutime).first()
         dist = pos.distance
-
-        distances.append(float(dist))
+        if dist:
+            distances.append(float(dist))
 
     return(distances)

@@ -8,7 +8,11 @@ from Calculation.DistanceFromMembrane import massDistanceFromMembrane
 
 def distance_dialog(session):
     dialog = tk.Toplevel()
-    dialog.minsize(400, 300)
+    dialog.minsize(300, 150)
+    for i in range(2):
+        dialog.rowconfigure(i, weight=1)
+    for i in range(2):
+        dialog.columnconfigure(i, weight=1)
     dialog.wm_title("Calculate distance between vesicles and the membrane")
     label = ttk.Label(dialog, text="Select cell:")
 
@@ -26,11 +30,11 @@ def distance_dialog(session):
     cellchoice.grid(row=0, column=1)
 
     validate = ttk.Button(dialog,
-                          text="Import",
+                          text="Calculate",
                           command=lambda: calculate_distance(dialog,
                                                              session,
                                                              cellchoice.get()))
-    validate.grid(row=1, columnspan=2)
+    validate.grid(row=1, columnspan=2, sticky="NSEW")
 
 
 def calculate_distance(dialog, session, name):

@@ -9,8 +9,12 @@ from .PopupMsg import popupmsg
 
 def MSD_dialog(session):
     dialog = tk.Toplevel()
-    dialog.minsize(400, 300)
+    dialog.minsize(300, 150)
     dialog.wm_title("Calculate MSDs and sort vesicles")
+    for i in range(2):
+        dialog.rowconfigure(i, weight=1)
+    for i in range(2):
+        dialog.columnconfigure(i, weight=1)
     label = ttk.Label(dialog, text="Select cell:")
 
     cells = session.query(Cell).all()
@@ -27,11 +31,11 @@ def MSD_dialog(session):
     cellchoice.grid(row=0, column=1)
 
     validate = ttk.Button(dialog,
-                          text="Import",
+                          text="Calculate MSD and sort by behaviour",
                           command=lambda: calculateMSD(dialog,
                                                        session,
                                                        cellchoice.get()))
-    validate.grid(row=1, columnspan=2)
+    validate.grid(row=1, columnspan=2, sticky="NSEW")
 
 
 def calculateMSD(dialog, session, name):

@@ -184,10 +184,11 @@ class CellPage(tk.Frame):
         discmb.grid(row=1, pady=(5, 5))
         distype.grid(row=3, column=2)
 
-        self.hide_membrane = False
+        self.hide_membrane = True
 
         options = tk.Frame(self)
         var = tk.IntVar()
+        var.set(True)
         check = ttk.Checkbutton(options,
                                 text="Hide membrane.",
                                 variable=var,
@@ -287,10 +288,10 @@ class CellPage(tk.Frame):
                                            session))
 
         label3.grid()
-        new_cell.grid(row=2)
-        calculate_msd.grid(row=3)
-        import_membrane_btn.grid(row=4)
-        membrane_dist_btn.grid(row=5)
+        new_cell.grid(row=1)
+        calculate_msd.grid(row=2)
+        import_membrane_btn.grid(row=3)
+        membrane_dist_btn.grid(row=4)
 
         cell_imports.grid(row=6, column=2)
 
@@ -984,35 +985,42 @@ class StatsPage(tk.Frame):
             (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
                                                                  stimu,
                                                                  "Free")
-            vestotal += (len(newfree) + len(newdir) + len(newcaged))
+
             self.ffsplot = self.statsfig.add_subplot(331)
             distances = dats(session, newfree)
+            vestotal += (len(distances))
             self.ffsplot.hist(distances, bins, color="g")
             self.ffsplot.axes.set_title("F2F")
             self.fdsplot = self.statsfig.add_subplot(332)
             distances = dats(session, newdir)
+            vestotal += (len(distances))
             self.fdsplot.hist(distances, bins)
             self.fdsplot.axes.set_title("F2D")
             self.fcsplot = self.statsfig.add_subplot(333)
             distances = dats(session, newcaged)
+            vestotal += (len(distances))
             self.fcsplot.hist(distances, bins, color="r")
             self.fcsplot.axes.set_title("F2C")
+
 
             # Originally directed
             (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
                                                                  stimu,
                                                                  "Directed")
-            vestotal += (len(newfree) + len(newdir) + len(newcaged))
+
             self.dfsplot = self.statsfig.add_subplot(334)
             distances = dats(session, newfree)
+            vestotal += (len(distances))
             self.dfsplot.hist(distances, bins, color="g")
             self.dfsplot.axes.set_title("D2F")
             self.ddsplot = self.statsfig.add_subplot(335)
             distances = dats(session, newdir)
+            vestotal += (len(distances))
             self.ddsplot.hist(distances, bins)
             self.ddsplot.axes.set_title("D2D")
             self.dcsplot = self.statsfig.add_subplot(336)
             distances = dats(session, newcaged)
+            vestotal += (len(distances))
             self.dcsplot.hist(distances, bins, color="r")
             self.dcsplot.axes.set_title("D2C")
 
@@ -1020,17 +1028,20 @@ class StatsPage(tk.Frame):
             (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,
                                                                  stimu,
                                                                  "Caged")
-            vestotal += (len(newfree) + len(newdir) + len(newcaged))
+
             self.cfsplot = self.statsfig.add_subplot(337)
             distances = dats(session, newfree)
+            vestotal += (len(distances))
             self.cfsplot.hist(distances, bins, color="g")
             self.cfsplot.axes.set_title("C2F")
             self.cdsplot = self.statsfig.add_subplot(338)
             distances = dats(session, newdir)
+            vestotal += (len(distances))
             self.cdsplot.hist(distances, bins)
             self.cdsplot.axes.set_title("C2D")
             self.ccsplot = self.statsfig.add_subplot(339)
             distances = dats(session, newcaged)
+            vestotal += (len(distances))
             self.ccsplot.hist(distances, bins, color="r")
             self.ccsplot.axes.set_title("C2C")
 

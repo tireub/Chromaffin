@@ -10,7 +10,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from GUI.Pages import CellPage, StartPage, f, VesiclePage, StatsPage
-# from GUI.VesiclePage import VesiclePage
+from GUI.PopupMsg import popupmsg
 
 
 class Chromaffinapp(tk.Tk):
@@ -28,7 +28,8 @@ class Chromaffinapp(tk.Tk):
 
         menubar = tk.Menu(container)
         filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Save settings", command = quit)
+        filemenu.add_command(label="Save settings",
+                             command=lambda: popupmsg("Not developped yet"))
         filemenu.add_separator()
         filemenu.add_command(label="Exit", command=quit)
         menubar.add_cascade(label="File", menu=filemenu)

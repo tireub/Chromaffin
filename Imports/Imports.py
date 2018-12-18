@@ -17,6 +17,7 @@ def cell_import(session, file, name, date, stimulation_time, stimulation_type):
 
     # Fill cell values
     session.add(newcell)
+    print("cell_added")
 
 # Get number of vesicles
     vesnbr = int(wb.sheet_by_name('Overall').cell(1, 1).value)

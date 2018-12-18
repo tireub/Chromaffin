@@ -10,7 +10,9 @@ from Calculation.DistanceFromMembrane import massDistanceFromMembrane
 
 def membrane_dialog(session):
     dialog = tk.Toplevel()
-    dialog.minsize(400, 300)
+    dialog.minsize(300, 200)
+    for i in range(4):
+        dialog.rowconfigure(i, weight=1)
     dialog.wm_title("Import membrane positions")
     label = ttk.Label(dialog, text="Select associated cell:")
 
@@ -35,7 +37,7 @@ def membrane_dialog(session):
     label2.grid(row=0)
     txt.grid(row=1)
     browse.grid(row=1, column=1)
-    fileloc.grid(row=1)
+    fileloc.grid(row=1, columnspan=2)
 
     option = tk.Frame(dialog)
     label4 = ttk.Label(option, text="Calculate distances from membrane ?")
@@ -53,7 +55,7 @@ def membrane_dialog(session):
                                                           txt.get(),
                                                           calc.get()))
 
-    validate.grid(row=3, columnspan=2)
+    validate.grid(row=3, columnspan=2, sticky="NSEW")
 
 
 def import_membrane(dialog, session, name, file, calc):
@@ -67,6 +69,8 @@ def import_membrane(dialog, session, name, file, calc):
         # Automatic distances calculation option
         if calc:
             massDistanceFromMembrane(session, cell)
+
+        dialog.destroy()
 
     # If there is some membrane points, raise error message
     else:

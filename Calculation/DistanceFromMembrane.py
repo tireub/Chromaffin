@@ -35,7 +35,7 @@ def massDistanceFromMembrane(session, cell):
     vesicles = session.query(Vesicle).filter(Vesicle.cell == cell).all()
 
     for vesicle in vesicles:
-
+        print(vesicle.id)
         # For every position of the vesicle
         for position in vesicle.positions:
             a = (float(position.x), float(position.y))
