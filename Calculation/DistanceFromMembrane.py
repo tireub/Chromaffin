@@ -7,14 +7,16 @@ from decimal import Decimal
 # for each of the positions of concerned vesicle
 def distanceFromMembrane(session, vesicle):
     # Retrieve parent cell from vesicle
-    associated_cell = session.query(Cell).filter(Cell.id == vesicle.cell_id).first()
+    associated_cell = session.query(Cell).\
+        filter(Cell.id == vesicle.cell_id).first()
     # Retrieve membrane points for that cell
-    membranePoints = session.query(MembranePoint).filter(MembranePoint.cell == associated_cell).all()
+    membranePoints = session.query(MembranePoint).\
+        filter(MembranePoint.cell == associated_cell).all()
 
     for position in vesicle.positions:
         a = (float(position.x), float(position.y))
 
-            #a = np.array(position.x, position.y)
+        # a = np.array(position.x, position.y)
         t = []
         for point in membranePoints:
             b = np.array((float(point.x), float(point.y)))

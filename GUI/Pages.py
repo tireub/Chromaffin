@@ -55,7 +55,6 @@ class StartPage(tk.Frame):
                         fg="blue", cursor="hand2", font=LARGE_FONT)
         link.bind("<Button-1>", self.callback)
 
-
         label.grid(row=0, columnspan=2, pady=100)
         link.grid(row=1, columnspan=2, pady=100)
         button1 = ttk.Button(self, text="Proceed",
@@ -67,7 +66,8 @@ class StartPage(tk.Frame):
         button2.grid(row=2, column=1, sticky="NSEW", pady=30, padx=30)
 
     def callback(self, event):
-        webbrowser.open_new("https://github.com/tireub/Chromaffin/blob/master/README.md")
+        webbrowser.open_new("https://github.com/tireub/"
+                            "Chromaffin/blob/master/README.md")
 
 
 # Definition of the cell page
@@ -1013,7 +1013,6 @@ class StatsPage(tk.Frame):
             vestotal += (len(distances))
             self.fcsplot.hist(distances, bins, color="r")
             self.fcsplot.axes.set_title("F2C")
-
 
             # Originally directed
             (newfree, newdir, newcaged, calc, cellnbr) = chvsori(session,

@@ -71,8 +71,6 @@ def sorting(session, vesicle):
             session.add(behav)  # Save info
 
 
-
-
 def cellSorting(session, cell):
     vesicles = session.query(Vesicle).filter(Vesicle.cell == cell).all()
 

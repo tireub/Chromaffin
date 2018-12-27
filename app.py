@@ -1,9 +1,8 @@
 import matplotlib
 matplotlib.use("TkAgg")
-from matplotlib.backends.backend_tkagg import FigureCanvasAgg, NavigationToolbar2Tk
-from matplotlib.figure import Figure
 import matplotlib.animation as animation
 from matplotlib import style
+import webbrowser
 from Base import Session, engine, Base
 
 import tkinter as tk
@@ -28,8 +27,10 @@ class Chromaffinapp(tk.Tk):
 
         menubar = tk.Menu(container)
         filemenu = tk.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Save settings",
-                             command=lambda: popupmsg("Not developped yet"))
+        filemenu.add_command(label="Help",
+                             command=lambda:
+                             webbrowser.open_new("https://github.com/tireub/"
+                             "Chromaffin/blob/master/README.md"))
         filemenu.add_separator()
         filemenu.add_command(label="Exit", command=quit)
         menubar.add_cascade(label="File", menu=filemenu)

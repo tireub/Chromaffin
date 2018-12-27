@@ -2,3 +2,5 @@ env
 __pycache__
 .idea
 GUI/VesiclePage.py
+Setup.py
+Tests/Tests.py

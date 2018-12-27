@@ -6,21 +6,22 @@ from Imports.Imports import cell_import
 from Calculation.BehaviourSorting import cellSorting
 from Calculation.MSDCalc import CellMSDs
 
+
 # Dialog box for new cell import
 def new_cell_dialog(session):
 
     dialog = tk.Toplevel()
     for i in range(4):
         dialog.rowconfigure(i, weight=1)
-    dialog.minsize(300,300)
+    dialog.minsize(300, 300)
     dialog.wm_title("Import new cell data")
 
     # Selection of the file location
     loc = tk.Frame(dialog)
     label = ttk.Label(loc, text="Choose file location:")
     txt = ttk.Entry(loc, width=50)
-    browse = ttk.Button(loc, text="Browse", command= lambda: browse_file(txt))
-    label.grid(column=0,columnspan=2)
+    browse = ttk.Button(loc, text="Browse", command=lambda: browse_file(txt))
+    label.grid(column=0, columnspan=2)
     txt.grid(row=1)
     browse.grid(row=1, column=1)
     loc.grid(row=0, columnspan=2, padx=(0, 5), sticky="NSEW")
@@ -45,11 +46,11 @@ def new_cell_dialog(session):
         types_list.append(t.chemical)
 
     stimu_type = ttk.Combobox(infos,
-                           width="30",
-                           values=types_list,
-                           state="readonly")
+                              width="30",
+                              values=types_list,
+                              state="readonly")
     # Elements disposition within the window
-    warning.grid(row=0, column=0, columnspan=2, padx=(0,5))
+    warning.grid(row=0, column=0, columnspan=2, padx=(0, 5))
     label4.grid(row=1, column=0)
     name_entry.grid(row=1, column=1)
     label5.grid(row=2, column=0)
@@ -78,20 +79,21 @@ def new_cell_dialog(session):
 
     validate = ttk.Button(dialog,
                           text="Import",
-                          command=lambda : import_cell(dialog,
-                                                       session,
-                                                       txt.get(),
-                                                       msd.get(),
-                                                       sort.get(),
-                                                       name_entry.get(),
-                                                       date_entry.get(),
-                                                       stimu_time_entry.get(),
-                                                       stimu_type.get()))
+                          command=lambda: import_cell(dialog,
+                                                      session,
+                                                      txt.get(),
+                                                      msd.get(),
+                                                      sort.get(),
+                                                      name_entry.get(),
+                                                      date_entry.get(),
+                                                      stimu_time_entry.get(),
+                                                      stimu_type.get()))
     validate.grid(row=3, columnspan=2, sticky="NSEW")
 
 
 # Import function called from dialog box
-def import_cell(dialog, session, filepath, msd, sort, name, date, stimutime, type):
+def import_cell(dialog, session, filepath, msd, sort,
+                name, date, stimutime, type):
     if not session.query(Cell).filter(Cell.name == name).first():
         cell_import(session, filepath, name, date, stimutime, type)
         print("Cell import done")

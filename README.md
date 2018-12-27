@@ -32,6 +32,18 @@ please contact guillaume.maucort@gmail.com
 
 ## Installation and configuration
 
+Clone the content of this repository into your working folder.
+
+Install MySQL if needed.
+Create a new database.
+Run the CREATE_DATABASE_SQL file.
+
+Edit the config.txt file with the correct values for the database name and password.
+
+Run app.py.
+
+An exe file is going to be added soon.
+
 
 ## User's guide
 
@@ -108,6 +120,7 @@ Finally it asks for the original behaviour for the particular changes studies.
 #### Features to be added:
 * Several functions of data export from the matplotlib graphs obtained in the statistics thumbnail.
 * Ability to export the statistics data in other forms than graphs (raw data, raw data per cell, etc.) to be able to create custom graphs for publications.
+* Delete cell from database (and/or recalculate MSD)
 
 #### Display improvements 
 * Ability to zoom on a single graph in the 9quadrants view
@@ -115,12 +128,15 @@ Finally it asks for the original behaviour for the particular changes studies.
 
 #### Calculations 
 * Improve calculation time for segmental display of trajectories within cell thumbnail
+* Ability to set fitting parameters for behaviour sorting
 
 #### Code
 * Factorisation (mainly for the pages.py function)
 * Divide pages.py in several files (one for each page ideally)
 
 #### V2
+* .exe file
+* Installer
 * Edges for each frame
 * Cell edges detection module
 * Added statistical reports
